@@ -1,0 +1,77 @@
+.ikili-kesfet-bolumu {
+    padding: 2.5rem 5.625rem;
+    background-color: #fff;
+}
+
+.ikili-kesfet-kapsayici {
+    display: flex;
+    gap: 2rem;
+}
+
+.kesfet-karti {
+    flex: 1;
+}
+
+.kesfet-karti-icerik {
+    position: relative;
+    border-radius: 1.875rem;
+    overflow: hidden;
+}
+
+.resim-alani {
+    position: relative;
+    padding-top: 66.66%;
+}
+
+.kesfet-resim {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.kesfet-link {
+    text-decoration: none;
+}
+
+.kesfet-metin {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    color: #fff;
+}
+
+.alt-baslik {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    padding-top: 100px;
+    opacity: 0;
+
+}
+
+.ana-baslik {
+    font-size: 1.5rem;
+    font-weight: bold;
+    opacity: 0;
+}
+
+.kesfet-karti:hover .kesfet-resim {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .ikili-kesfet-bolumu {
+        padding: 3.125rem 0;
+    }
+
+    .ikili-kesfet-kapsayici {
+        flex-direction: column;
+    }
+
+    .kesfet-karti-icerik {
+        border-radius: 0.625rem;
+    }
+}

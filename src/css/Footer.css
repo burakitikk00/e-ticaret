@@ -1,0 +1,96 @@
+.footer {
+    background-color: #012248;
+    color: #fff;
+    padding: 40px 0;
+}
+
+.footer-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-top {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 30px;
+}
+
+.footer-menu nav {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.menu-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.menu-section li {
+    margin-bottom: 8px;
+}
+
+.menu-section a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.subscription p {
+    font-size: 17px;
+    margin-bottom: 15px;
+}
+
+.input-wrapper {
+    margin-bottom: 15px;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #fff;
+    background: transparent;
+    color: #fff;
+}
+
+button[type="submit"] {
+    background: #fff;
+    color: #012248;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.footer-bottom {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.logo img {
+    max-width: 100px;
+}
+
+@media (max-width: 768px) {
+    .footer-top {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-menu nav {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .subscription p {
+        font-size: 18px;
+    }
+
+    .logo img {
+        max-width: 220px;
+    }
+}

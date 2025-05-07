@@ -1,0 +1,237 @@
+.products-recommendation-wrapper {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 2000rem;
+    padding: 0;
+}
+
+.baslik {
+    text-align: center;
+    font-size: clamp(24px, 3vw, 48px);
+    font-weight: bold;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+.link {
+    display: block;
+    text-align: center;
+    text-decoration: underline;
+    color: black;
+    font-size: 18px;
+    padding: 10px 0;
+}
+
+.products-recommendation-slider {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    user-select: none;
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    gap: 0;
+    padding: 0;
+}
+
+@media (min-width: 768px) {
+    .products-recommendation-slider {
+        overflow: hidden;
+        gap: 1rem;
+        padding-right: 3rem;
+    }
+}
+
+.slick-list {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.slick-track {
+    position: relative;
+    display: flex;
+    opacity: 1;
+    width: 100%;
+}
+
+.slick-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-150%);
+    z-index: 10;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.375rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: none;
+}
+
+.slick-prev {
+    left: 0rem;
+}
+
+.slick-next {
+    right: 0rem;
+}
+
+.arrow-prev,
+.arrow-next {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.arrow-prev svg,
+.arrow-next svg {
+    width: 100%;
+    height: 100%;
+    color: var(--primary-color, #000);
+}
+
+.slick-slide {
+    flex: 1;
+    padding: 0.25rem;
+}
+
+.product-card-image {
+    position: relative;
+    width: 100%;
+    padding-bottom: 140%;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid #000;
+}
+
+.product-card-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.product-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.hover-detay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 1.5rem;
+}
+
+.product-card:hover .hover-detay,
+.product-card:active .hover-detay {
+    opacity: 1;
+}
+
+.sepete-ekle-btn {
+    width: 100%;
+    max-width: 16rem;
+    padding: 0.75rem 1rem;
+    background: var(--primary-color, #000);
+    color: #fff;
+    border: 2px solid var(--primary-color, #000);
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.sepete-ekle-btn:hover,
+.sepete-ekle-btn:focus {
+    background-color: #000000;
+    color: var(--primary-color, #fcfcfc);
+}
+
+.urun-incele {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color, #000);
+    cursor: pointer;
+    font-size: clamp(0.875rem, 2vw, 1.1rem);
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.urun-bilgi {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    font-weight: 500;
+    color: #242424;
+    text-decoration: inherit;
+}
+
+.urun-bilgi .urun-baslik {
+    color: #000;
+    text-decoration: none;
+    font-size: clamp(14px, 2vw, 18px);
+}
+
+.urun-bilgi .urun-fiyat {
+    color: #000;
+    text-align: right;
+    text-decoration: none;
+    font-size: clamp(16px, 2vw, 20px);
+    margin-left: 5%;
+}
+
+@media (max-width: 1000px) {
+    .product-card {
+        max-width: 100%;
+        margin: 0;
+        padding: 0.25rem;
+    }
+
+    .product-card-image {
+        padding-bottom: 120%;
+    }
+
+    .hover-detay {
+        padding: 0.75rem;
+    }
+
+    .sepete-ekle-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .products-recommendation-slider {
+        padding: 0;
+        gap: 0;
+    }
+
+    .slick-slide {
+        padding: 0.25rem;
+    }
+}
