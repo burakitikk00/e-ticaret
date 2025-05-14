@@ -1,0 +1,304 @@
+/* Siparislerim sayfası ana container */
+.siparislerim-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.siparislerim-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+}
+
+/* Sipariş kartı stilleri */
+.siparis-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: clamp(10px, 3vw, 20px);
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.siparis-content {
+  display: flex;
+  gap: 24px;
+}
+
+.siparis-left {
+  flex: 1;
+}
+
+.siparis-right {
+  width: 200px;
+}
+
+/* Sipariş bilgileri */
+.siparis-info {
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+}
+
+/* Ürün görselleri */
+.product-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  position: relative;
+  height: 60px;
+}
+
+.product-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: absolute;
+}
+
+/* Sipariş toplam fiyatı */
+.order-total {
+  text-align: right;
+  font-weight: bold;
+  font-size: 16px;
+  color: #222;
+}
+
+/* İlerleme çubuğu stilleri */
+.progress-bar-wrapper {
+  margin: 20px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 10px;
+  min-width: min-content;
+}
+
+.progress-step-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.progress-step {
+  width: clamp(15px, 3vw, 20px);
+  height: clamp(15px, 3vw, 20px);
+  border-radius: 50%;
+  background: #e0e0e0;
+  border: 2px solid #fff;
+}
+
+.progress-step.active {
+  background: #4CAF50;
+}
+
+.progress-label {
+  font-size: clamp(0.7rem, 2vw, 0.8rem);
+  color: #666;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.progress-arrow {
+  color: #999;
+  font-size: clamp(14px, 2.5vw, 18px);
+}
+
+/* Responsive tasarım için medya sorguları */
+@media screen and (max-width: 768px) {
+  .siparis-content {
+    flex-direction: column;
+  }
+
+  .siparis-right {
+    width: 100%;
+  }
+
+  .progress-bar {
+    display: none; /* Mobilde ilerleme çubuğunu gizle */
+  }
+
+  .progress-arrow {
+    transform: rotate(90deg);
+    margin: 5px 0;
+  }
+
+  .progress-step-container {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .progress-label {
+    margin-left: 10px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .siparislerim-container {
+    padding: 8px;
+  }
+
+  .siparis-card {
+    padding: 12px;
+  }
+
+  .siparis-info {
+    font-size: 0.9rem;
+  }
+
+  .product-image {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Modal Stilleri */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 3001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  min-width: 340px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 0;
+}
+
+.siparis-detay-bilgi {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.siparis-detay-bilgi p {
+  margin: 8px 0;
+  font-size: 15px;
+  color: #444;
+}
+
+.siparis-urunler {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.siparis-urun-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.siparis-urun-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.urun-detay {
+  flex: 1;
+}
+
+.urun-detay h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.urun-detay p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.siparis-toplam {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  text-align: right;
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Responsive Modal */
+@media screen and (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    margin: 10px;
+    padding: 20px;
+  }
+
+  .siparis-urun-item {
+    flex-direction: column;
+  }
+
+  .siparis-urun-item img {
+    width: 100%;
+    height: 150px;
+  }
+} 

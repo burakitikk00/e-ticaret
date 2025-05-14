@@ -1,0 +1,50 @@
+.dashboard-layout-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.dashboard-layout-content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 0 32px;
+}
+
+/* UrunListeleme içindeki kutuların birbirine çok yaklaşmaması için */
+.dashboard-flex-row {
+  display: flex;
+  gap: 24px !important;
+  margin-bottom: 16px;
+}
+.dashboard-flex-col{
+  width: 100%;
+  margin-right: 10px;
+}
+.dashboard-input{
+  width: 95%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+/* Açıklama: İçerik kutusu sağdan ve soldan eşit boşluklu, input kutuları arasında daha fazla boşluk var. */
+
+/* Açıklama: Bu CSS, DashboardLayout.jsx dosyasındaki ana container ve içerik alanı için kullanılır. Sidebar solda sabit kalır, içerik sağda genişler. */
+
+/* Responsive: 900px altı için sidebar üstte, içerik altta */
+@media (max-width: 900px) {
+  .dashboard-layout-container {
+    flex-direction: column;
+  }
+  .dashboard-layout-content {
+    margin-left: 0;
+    padding: 0 8px;
+  }
+}
+
+/* Responsive: 600px altı için padding ve fontlar küçülür */
+@media (max-width: 600px) {
+  .dashboard-layout-content {
+    padding: 0 2px;
+  }
+}
+/* Açıklama: Responsive görünüm için media query eklendi. Küçük ekranlarda sidebar üstte, içerik altta ve padding/fontlar küçülüyor. */ 
