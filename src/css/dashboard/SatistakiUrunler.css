@@ -2,24 +2,23 @@
   background: #f7f8fa;
   padding: 32px;
   min-height: 100vh;
+  overflow-y: auto;
 }
 .satistaki-baslik {
   font-size: 20px;
   font-weight: 600;
+  margin-left: 50px;
+  margin-top: 8px;
   margin-bottom: 24px;
   color: #222;
-}
-.satistaki-table-wrapper {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 8px #0001;
-  padding: 0 0 8px 0;
-  overflow-x: auto;
 }
 .satistaki-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 8px #0001;
+  margin-bottom: 24px;
 }
 .satistaki-table th {
   color: #b0b7c3;
@@ -36,6 +35,18 @@
   padding: 16px 12px 16px 18px;
   border-bottom: 1px solid #f0f0f0;
   background: #fff;
+}
+.satistaki-urun-bilgi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.satistaki-urun-resim {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #f0f0f0;
 }
 .satistaki-urun-adi {
   color: #0070c9;
@@ -72,7 +83,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 16px #0002;
   min-width: 200px;
-  z-index: 10;
+  z-index: 1000;
   padding: 8px 0;
 }
 .satistaki-islem-item {
@@ -104,20 +115,105 @@
   color: #0070c9;
   background: #fff;
   font-weight: 500;
+  transition: all 0.2s;
+}
+.satistaki-pagination-pages span:hover {
+  background: #f0f0f0;
 }
 .satistaki-pagination-pages .active {
   background: #00e6c3;
   color: #fff;
 }
-@media (max-width: 900px) {
+/* Responsive Tasarım */
+@media (max-width: 744px) {
   .satistaki-urunler-container {
-    padding: 10px;
+    padding: 16px;
   }
-  .satistaki-table-wrapper {
-    padding: 0;
+  .satistaki-baslik {
+    font-size: 18px;
+    margin-bottom: 16px;
   }
-  .satistaki-table th, .satistaki-table td {
-    padding: 10px 6px;
+  .satistaki-table {
+    display: block;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .satistaki-table thead {
+    display: none; /* Mobilde başlıkları gizle */
+  }
+  .satistaki-table tbody {
+    display: block;
+  }
+  .satistaki-table tr {
+    display: block;
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px #0001;
+  }
+  .satistaki-table td {
+    display: flex;
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    position: relative;
+    align-items: center;
+  }
+  .satistaki-table td:last-child {
+    border-bottom: none;
+  }
+  .satistaki-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #b0b7c3;
+    width: 120px;
+    font-size: 13px;
+  }
+  .satistaki-urun-bilgi {
+    flex: 1;
+  }
+  .satistaki-urun-resim {
+    width: 40px;
+    height: 40px;
+  }
+  .satistaki-urun-adi {
+    font-size: 14px;
+  }
+  .satistaki-durum {
+    font-size: 13px;
+  }
+  .satistaki-islem-btn {
+    padding: 6px 16px;
+    font-size: 13px;
+  }
+  .satistaki-islem-menu {
+    position: fixed;
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    min-width: 90%;
+    z-index: 1000;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px #0003;
+  }
+  .satistaki-islem-item {
+    padding: 16px 20px;
+    font-size: 15px;
+    text-align: center;
+  }
+  .satistaki-pagination {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 13px;
+  }
+  .satistaki-pagination-pages {
+    width: 100%;
+    justify-content: center;
+  }
+  .satistaki-pagination-pages span {
+    padding: 3px 8px;
     font-size: 13px;
   }
 }

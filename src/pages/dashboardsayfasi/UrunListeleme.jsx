@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import '../../css/dashboard/UrunListeleme.css'; // Dashboard ürün ekleme için özel CSS
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
@@ -23,21 +23,27 @@ const opsiyonlar = [
   { ad: '', fiyat: '' },
 ];
 
-const varyasyonSecenekleri = [
-  'Beden',
-  'Renk',
-  'Çocuk çantaları',
-  'Numara',
-  // İleride API'den çekilecek
-];
-
-// Varyasyon değerlerini dinamik olarak belirle
-const varyasyonDegerleri = {
-  Beden: ['2-3', '3-4', '4-5'],
-  Renk: ['Pembe', 'Taba', 'Mor', 'Siyah'],
-  'Çocuk çantaları': ['Çanta1', 'Çanta2'],
-  Numara: ['36', '37', '38', '39'],
+// Varyasyonlar ve seçenekler localStorage'dan alınacak
+const getVaryasyonlarFromStorage = () => {
+  // Eğer localStorage'da yoksa örnek veri ile başlat
+  const data = localStorage.getItem('varyasyonlar');
+  if (data) return JSON.parse(data);
+  // İlk kullanımda örnek veri ile başlat
+  const ornek = [
+    { ad: 'Renk', secenekler: ['Kırmızı Renk', 'Beyaz Renk', 'Siyah Renk', 'Krem renk', 'Bej Renk', 'Pembe Renk'] },
+    { ad: 'Numara Seç', secenekler: ['36', '37', '38', '39', '40'] },
+    { ad: 'Askı Renkleri', secenekler: ['Altın', 'Gümüş', 'Siyah'] },
+  ];
+  localStorage.setItem('varyasyonlar', JSON.stringify(ornek));
+  return ornek;
 };
+
+const varyasyonlarStorage = getVaryasyonlarFromStorage();
+const varyasyonSecenekleri = varyasyonlarStorage.map(v => v.ad);
+const varyasyonDegerleri = {};
+varyasyonlarStorage.forEach(v => {
+  varyasyonDegerleri[v.ad] = v.secenekler;
+});
 
 const UrunListeleme = () => {
   // Form state'leri
@@ -46,6 +52,7 @@ const UrunListeleme = () => {
   const [paraBirimi, setParaBirimi] = useState('TL');
   const [stokAdedi, setStokAdedi] = useState('');
   const [aciklama, setAciklama] = useState('');
+  const [duzenlemeModu, setDuzenlemeModu] = useState(false);
 
   // Kategori seçimi için state
   const [seciliKategoriler, setSeciliKategoriler] = useState([]);
@@ -91,6 +98,18 @@ const UrunListeleme = () => {
   const [gorselSecKombIndex, setGorselSecKombIndex] = useState(null);
   const [seciliGorselIndex, setSeciliGorselIndex] = useState(null);
 
+  // Yeni ref'ler ekleyelim
+  const anaGorselInputRef = useRef();
+  const modalGorselInputRef = useRef();
+
+  // Varyasyon stoklarının toplamını hesapla
+  const hesaplaToplamStok = useCallback(() => {
+    if (!varyasyon1 || !varyasyon2) return 0;
+    return varyasyonKombinasyonlari.reduce((toplam, komb) => {
+      return toplam + (parseInt(komb.stok) || 0);
+    }, 0);
+  }, [varyasyonKombinasyonlari, varyasyon1, varyasyon2]);
+
   // Kategori seçimi değiştiğinde çalışır
   const handleKategoriChange = (kategori) => {
     setSeciliKategoriler(prev =>
@@ -102,8 +121,20 @@ const UrunListeleme = () => {
 
   // Varyasyon seçimi değiştiğinde çalışır
   const handleVaryasyonChange = (index, value) => {
-    if (index === 1) setVaryasyon1(value);
-    if (index === 2) setVaryasyon2(value);
+    if (index === 1) {
+      setVaryasyon1(value);
+      if (value && varyasyon2) {
+        // Varyasyon seçildiğinde stok adedini sıfırla
+        setStokAdedi('');
+      }
+    }
+    if (index === 2) {
+      setVaryasyon2(value);
+      if (value && varyasyon1) {
+        // Varyasyon seçildiğinde stok adedini sıfırla
+        setStokAdedi('');
+      }
+    }
     // Varyasyonlar değişince kombinasyonları sıfırla
     setVaryasyonKombinasyonlari([]);
   };
@@ -179,21 +210,30 @@ const UrunListeleme = () => {
     }
   };
 
-  // Görsel seçilince modalı aç
-  const handleGorselSec = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSeciliGorsel(file);
-      setGorselUrl(URL.createObjectURL(file));
-      setZoom(1);
-      setRotate(0);
-      setGorselModalAcik(true);
+  // Ana görsel kutusuna tıklayınca dosya seçtir
+  const handleAnaGorselBoxClick = () => {
+    if (anaGorselInputRef.current) {
+      anaGorselInputRef.current.click();
     }
   };
 
-  // Görsel kutusuna tıklayınca dosya seçtir
-  const handleGorselBoxClick = () => {
-    fileInputRef.current.click();
+  // Modal görsel kutusuna tıklayınca dosya seçtir
+  const handleModalGorselBoxClick = () => {
+    if (modalGorselInputRef.current) {
+      modalGorselInputRef.current.click();
+    }
+  };
+
+  // Görsel seçilince modalı aç
+  const handleGorselSec = (e) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    
+    const file = e.target.files[0];
+    setSeciliGorsel(file);
+    setGorselUrl(URL.createObjectURL(file));
+    setZoom(1);
+    setRotate(0);
+    setGorselModalAcik(true);
   };
 
   // Görsel silme fonksiyonu
@@ -268,27 +308,108 @@ const UrunListeleme = () => {
     });
   };
 
+  // Stok girişi için kontrol fonksiyonu
+  const handleStokChange = (e) => {
+    const value = e.target.value;
+    // Sadece sayısal değer girilmesine izin ver
+    if (/^\d*$/.test(value)) {
+      setStokAdedi(value);
+    }
+  };
+
+  // Fiyat girişi için kontrol fonksiyonu
+  const handleFiyatChange = (e) => {
+    const value = e.target.value;
+    // Sadece sayısal değer ve nokta girilmesine izin ver
+    if (/^\d*\.?\d*$/.test(value)) {
+      setSatisFiyati(value);
+    }
+  };
+
+  // Varyasyon kombinasyonu için fiyat kontrolü
+  const handleKombinasyonFiyatChange = (index, value) => {
+    // Sadece sayısal değer ve nokta girilmesine izin ver
+    if (/^\d*\.?\d*$/.test(value)) {
+      handleKombinasyonUpdate(index, 'fiyat', value);
+    }
+  };
+
+  // Varyasyon kombinasyonu için stok kontrolü
+  const handleKombinasyonStokChange = (index, value) => {
+    // Sadece sayısal değer girilmesine izin ver
+    if (/^\d*$/.test(value)) {
+      handleKombinasyonUpdate(index, 'stok', value);
+      // Stok değiştiğinde toplam stok miktarını güncelle
+      if (varyasyon1 && varyasyon2) {
+        setStokAdedi(hesaplaToplamStok().toString());
+      }
+    }
+  };
+
+  // useEffect ile toplam stok miktarını takip et
+  useEffect(() => {
+    if (varyasyon1 && varyasyon2) {
+      setStokAdedi(hesaplaToplamStok().toString());
+    }
+  }, [varyasyonKombinasyonlari, varyasyon1, varyasyon2, hesaplaToplamStok]);
+
+  // Düzenleme modunda ürün bilgilerini yükle
+  useEffect(() => {
+    const duzenlenecekUrun = localStorage.getItem('duzenlenecekUrun');
+    if (duzenlenecekUrun) {
+      const urun = JSON.parse(duzenlenecekUrun);
+      setUrunAdi(urun.ad);
+      setSatisFiyati(urun.fiyat.replace(' TL', ''));
+      setParaBirimi(urun.paraBirimi);
+      setStokAdedi(urun.stok.toString());
+      setAciklama(urun.aciklama);
+      setSeciliKategoriler(urun.kategori);
+      setKargoTipi(urun.kargoTipi);
+      setKargoUcreti(urun.kargoUcreti);
+      setUrunTipi(urun.urunTipi);
+      setUrunDil(urun.urunDil);
+      setDuzenlemeModu(true);
+      
+      // Görselleri yükle
+      if (urun.resim) {
+        setGorseller([{ url: urun.resim, name: 'Ürün Görseli' }]);
+      }
+    }
+  }, []);
+
+  // Form gönderildiğinde
+  const handleSubmit = () => {
+    if (duzenlemeModu) {
+      // Düzenleme modunda güncelleme yap
+      alert('Ürün başarıyla güncellendi!');
+      localStorage.removeItem('duzenlenecekUrun');
+      setDuzenlemeModu(false);
+    } else {
+      // Yeni ürün ekle
+      alert('Ürün başarıyla eklendi!');
+    }
+  };
+
   return (
     <div className="dashboard-urun-container">
       {/* Breadcrumb */}
       <div className="dashboard-breadcrumb">
-        <b>ÜRÜNLER</b> &nbsp; &gt; &nbsp; <b>ÜRÜN LİSTELEME</b>
+        <b>ÜRÜNLER</b> &nbsp; &gt; &nbsp; <b>{duzenlemeModu ? 'ÜRÜN DÜZENLEME' : 'ÜRÜN LİSTELEME'}</b>
       </div>
 
       {/* Ürün görseli ve video yükleme alanı */}
       <div style={{ display: 'flex', gap: 24 }}>
         <div style={{ flex: 1 }}>
-          <div className="dashboard-box" onClick={handleGorselBoxClick} style={{ cursor: 'pointer', position: 'relative' }}>
+          <div className="dashboard-box" onClick={handleAnaGorselBoxClick} style={{ cursor: 'pointer', position: 'relative' }}>
             Ürün görselini bu alana sürükleyin veya yüklemek için tıklayın.
             <input
               type="file"
               accept="image/*"
               style={{ display: 'none' }}
-              ref={fileInputRef}
+              ref={anaGorselInputRef}
               onChange={handleGorselSec}
             />
           </div>
-          
         </div>
         {/* Sağda görsellerin listesi */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
@@ -316,7 +437,7 @@ const UrunListeleme = () => {
       {/* Görsel düzenleme modalı */}
       {gorselModalAcik && (
         <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 9999,
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 10000,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {gorselYukleniyor ? (
@@ -381,49 +502,55 @@ const UrunListeleme = () => {
 
       {/* Görsel seçme modalı */}
       {gorselSecModalAcik && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 9999,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <div style={{ background: '#fff', borderRadius: 10, width: 540, maxWidth: '98vw', padding: 32, boxShadow: '0 2px 24px #0002', position: 'relative' }}>
-            <div style={{ fontWeight: 600, fontSize: 20, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
               <span role="img" aria-label="görsel">🖼️</span> Ürün Görselleri
             </div>
-            <div style={{ color: '#7a869a', fontSize: 15, marginBottom: 18 }}>
+            <div className="modal-description">
               Yeni bir görsel yükleyebilir veya mevcut görseller arasından seçim yapabilirsiniz.
             </div>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'center', marginBottom: 24 }}>
+            <div className="modal-content">
               {/* Yükleme kutusu */}
-              <div style={{ width: 160, height: 120, border: '2px dashed #bfc7d1', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a869a', fontSize: 15, cursor: 'pointer', textAlign: 'center', background: '#f7f8fa' }}>
+              <div 
+                className="modal-upload-box dashboard-box" 
+                onClick={handleModalGorselBoxClick}
+              >
                 Ürün görselini bu alana sürükleyin veya yüklemek için tıklayın.
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  ref={modalGorselInputRef}
+                  onChange={handleGorselSec}
+                />
               </div>
               {/* Yüklenen görseller */}
-              {gorseller.map((g, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleKombinasyonGorselSec(i)}
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 8,
-                    overflow: 'hidden',
-                    border: seciliGorselIndex === i ? '3px solid #00e6c3' : '2px solid #eee',
-                    cursor: 'pointer',
-                    boxShadow: seciliGorselIndex === i ? '0 0 0 2px #00e6c3' : 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#fff',
-                    marginRight: 8
-                  }}
-                >
-                  <img src={g.url} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              ))}
+              <div className="modal-image-grid">
+                {gorseller.map((g, i) => (
+                  <div
+                    key={i}
+                    onClick={() => handleKombinasyonGorselSec(i)}
+                    className={`modal-image-item ${seciliGorselIndex === i ? 'selected' : ''}`}
+                  >
+                    <img src={g.url} alt={g.name} />
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16 }}>
-              <button onClick={handleGorselSecKapat} style={{ padding: '10px 32px', borderRadius: 6, border: '1px solid #eee', background: '#fff', color: '#222', fontWeight: 600, fontSize: 16 }}>KAPAT</button>
-              <button onClick={handleGorselSecKaydet} style={{ padding: '10px 32px', borderRadius: 6, border: 'none', background: '#00e6c3', color: '#fff', fontWeight: 700, fontSize: 16 }}>KAYDET</button>
+            <div className="modal-footer">
+              <button 
+                onClick={handleGorselSecKapat} 
+                className="modal-button modal-button-secondary"
+              >
+                KAPAT
+              </button>
+              <button 
+                onClick={handleGorselSecKaydet} 
+                className="modal-button modal-button-primary"
+              >
+                KAYDET
+              </button>
             </div>
           </div>
         </div>
@@ -438,7 +565,14 @@ const UrunListeleme = () => {
           </div>
           <div className="dashboard-flex-col">
             <label className="dashboard-label">SATIŞ FİYATI <span style={{ color: 'red' }}>*</span></label>
-            <input className="dashboard-input" value={satisFiyati} onChange={e => setSatisFiyati(e.target.value)} placeholder="Satış fiyatı" />
+            <input 
+              className="dashboard-input" 
+              value={satisFiyati} 
+              onChange={handleFiyatChange} 
+              placeholder="Satış fiyatı"
+              type="text"
+              inputMode="decimal"
+            />
           </div>
           <div className="dashboard-flex-col">
             <label className="dashboard-label">PARA BİRİMİ <span style={{ color: 'red' }}>*</span></label>
@@ -450,7 +584,20 @@ const UrunListeleme = () => {
           </div>
           <div className="dashboard-flex-col">
             <label className="dashboard-label">STOK ADEDİ <span style={{ color: 'red' }}>*</span></label>
-            <input className="dashboard-input" value={stokAdedi} onChange={e => setStokAdedi(e.target.value)} placeholder="Stok adedi" />
+            <input 
+              className="dashboard-input" 
+              value={stokAdedi} 
+              onChange={handleStokChange} 
+              placeholder="Stok adedi"
+              type="text"
+              inputMode="numeric"
+              disabled={varyasyon1 && varyasyon2} // Varyasyon seçiliyse devre dışı bırak
+            />
+            {varyasyon1 && varyasyon2 && (
+              <div style={{ color: '#ff0099', fontSize: 13, marginTop: 4 }}>
+                Varyasyon seçildiği için stok adedi otomatik olarak toplanmaktadır.
+              </div>
+            )}
           </div>
         </div>
         <div style={{ marginBottom: 16 }}>
@@ -607,30 +754,30 @@ const UrunListeleme = () => {
                             </td>
                             <td data-label="Fiyat" style={{ padding: 8 }}>
                               <input
-                                type="number"
+                                type="text"
                                 className="dashboard-input"
                                 style={{ width: 90 }}
                                 value={komb.fiyat}
-                                onChange={e => handleKombinasyonUpdate(
+                                onChange={e => handleKombinasyonFiyatChange(
                                   varyasyonKombinasyonlari.findIndex(k => k.varyasyon === komb.varyasyon),
-                                  'fiyat',
                                   e.target.value
                                 )}
                                 placeholder="Fiyat"
+                                inputMode="decimal"
                               />
                             </td>
                             <td data-label="Stok" style={{ padding: 8 }}>
                               <input
-                                type="number"
+                                type="text"
                                 className="dashboard-input"
                                 style={{ width: 70 }}
                                 value={komb.stok}
-                                onChange={e => handleKombinasyonUpdate(
+                                onChange={e => handleKombinasyonStokChange(
                                   varyasyonKombinasyonlari.findIndex(k => k.varyasyon === komb.varyasyon),
-                                  'stok',
                                   e.target.value
                                 )}
                                 placeholder="Stok"
+                                inputMode="numeric"
                               />
                             </td>
                           </tr>
@@ -754,7 +901,9 @@ const UrunListeleme = () => {
       </div>
 
       {/* Ürünü Satışa Çıkar butonu */}
-      <button className="dashboard-button">ÜRÜNÜ SATIŞA ÇIKAR</button>
+      <button className="dashboard-button" onClick={handleSubmit}>
+        {duzenlemeModu ? 'ÜRÜNÜ GÜNCELLE' : 'ÜRÜNÜ SATIŞA ÇIKAR'}
+      </button>
     </div>
   );
 };

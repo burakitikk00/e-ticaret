@@ -1,7 +1,12 @@
+import { Routes, Route } from 'react-router-dom';
 import Sidebar from '../../component/dashboard/Sidebar';
 import UrunListeleme from './UrunListeleme';
+import SatistakiUrunler from './SatistakiUrunler';
 import '../../css/dashboard/DashboardLayout.css'; // Dashboard layout için özel CSS
-
+import Siparisler from './Siparisler';
+import VaryasyonAyarlar from './VaryasyonAyarlar';
+import HesapGuvenligi from './HesapGuvenligi';
+import HesapOzeti from './HesapOzeti';
 const DashboardLayout = () => {
   return (
     <div className="dashboard-layout-container">
@@ -9,11 +14,17 @@ const DashboardLayout = () => {
       <Sidebar />
       {/* Sağda içerik alanı */}
       <div className="dashboard-layout-content">
-        <UrunListeleme />
+       <Routes>
+        <Route path="/urun-listeleme" element={<UrunListeleme />} />
+        <Route path="/satistaki-urunler" element={<SatistakiUrunler />} />
+        <Route path="/siparisler" element={<Siparisler />} />
+        <Route path="/VaryasyonAyarlar" element={<VaryasyonAyarlar />} />
+        <Route path="/HesapGuvenligi" element={<HesapGuvenligi />} />
+        <Route path="/HesapOzeti" element={<HesapOzeti />} />
+       </Routes>
       </div>
     </div>
   );
 };
 
 export default DashboardLayout;
-// Açıklama: Tüm layout stilleri ayrı CSS dosyasına taşındı, component sadeleşti.

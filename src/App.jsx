@@ -15,7 +15,11 @@ import Sallar from './pages/Sallar'
 import Account from './pages/Account'
 import DashboardLayout from './pages/dashboardsayfasi/DashboardLayout'
 import UrunListeleme from './pages/dashboardsayfasi/UrunListeleme'
-
+import SatistakiUrunler from './pages/dashboardsayfasi/SatistakiUrunler'
+import Siparisler from './pages/dashboardsayfasi/Siparisler'
+import VaryasyonAyarlar from './pages/dashboardsayfasi/VaryasyonAyarlar'
+import HesapGuvenligi from './pages/dashboardsayfasi/HesapGuvenligi'
+import HesapOzeti from './pages/dashboardsayfasi/HesapOzeti'
 // SiteLayout: Header ve Footer'ı saran layout
 const SiteLayout = ({ children }) => (
   <>
@@ -46,6 +50,8 @@ function App() {
               <Route path="/ProductDetail" element={<ProductDetail />} />
               <Route path="/Tumurunler" element={<Tumurunler />} />
               <Route path="/Account" element={<Account />} />
+              <Route path="/Siparisler" element={<Siparisler />} />
+              <Route path="/HesapOzeti" element={<HesapOzeti />} />
             </Routes>
           </SiteLayout>
         }
@@ -58,6 +64,26 @@ function App() {
       <Route 
         path="/urun-listeleme"  
         element={<UrunListeleme />}
+      />
+      <Route
+        path="/satistaki-urunler"
+        element={<SatistakiUrunler />}
+      />
+      <Route
+        path="/siparisler"
+        element={<Siparisler />}
+      />
+      <Route
+        path="/varyasyon-ayarlar"
+        element={<VaryasyonAyarlar />}
+      />
+      <Route
+        path="/HesapGuvenligi"
+        element={<HesapGuvenligi />}
+      />
+      <Route
+        path="/HesapOzeti"
+        element={<HesapOzeti />}
       />
     </Routes>
   )

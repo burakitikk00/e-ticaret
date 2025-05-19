@@ -1,0 +1,15 @@
+.hesap-ozeti-container {
+  padding: 24px;
+}
+
+/* Küçük ekranlar için ayarlamalar */
+@media (max-width: 768px) {
+  .hesap-ozeti-container {
+    padding: 16px;
+  }
+
+  /* Kartların küçük ekranlarda daha iyi görünmesi için */
+  .ant-card {
+    margin-bottom: 16px; /* Kartlar arasına boşluk ekle */
+  }
+}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import '../../css/Sidebar.css' // Stil dosyasını ayrıca oluşturacağız
 import { FaHome, FaBoxOpen, FaTags, FaStore, FaUser, FaChevronDown, FaChevronRight, FaCogs, FaImage, FaThList, FaBoxes, FaTruck, FaPercent, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
 
@@ -7,44 +8,34 @@ const menu = [
   {
     title: 'Hesap Özeti',
     icon: <FaHome />, // Ana sayfa ikonu
+    path: '/dashboard/HesapOzeti' // Hesap özeti sayfasına yönlendirme path'i eklendi
   },
   {
     title: 'Ürünler',
     icon: <FaTags />, // Etiket ikonu
     subMenu: [
-      { title: 'Ürün Listeleme', path: '/urun-listeleme' }, // Ürün listeleme sayfasına yönlendirme için path eklendi
-      { title: 'Satıştaki Ürünler' }, 
+      { title: 'Ürün Listeleme', path: '/dashboard/urun-listeleme' },
+      { title: 'Satıştaki Ürünler', path: '/dashboard/satistaki-urunler' }
     ],
   },
   {
     title: 'Siparişler',
     icon: <FaBoxOpen />, // Kutu ikonu
+    path: '/dashboard/siparisler'
   },
-  {
-    title: 'İndirimler', // Yeni eklenen indirimler menüsü
-    icon: <FaPercent />, // Yüzde ikonu
-    subMenu: [
-      { title: 'Aktif İndirimler' },
-      { title: 'İndirim Kuponları' },
-    ],
-  },
+  
   {
     title: 'Dükkan Yönetimi',
     icon: <FaStore />, // Mağaza ikonu
     subMenu: [
-      { title: 'Dükkan Seçenekleri', icon: <FaCogs /> },
-      { title: 'Logo & Banner', icon: <FaImage /> },
-      { title: 'Kategori Ayarları', icon: <FaThList /> },
-      { title: 'Varyasyon Ayarları', icon: <FaBoxes /> },
-      { title: 'Kargo Ayarları', icon: <FaTruck /> },
+      { title: 'Varyasyon Ayarları', icon: <FaBoxes />, path: '/dashboard/VaryasyonAyarlar' },
     ],
   },
   {
     title: 'Hesap Yönetimi',
     icon: <FaUser />, // Kullanıcı ikonu
     subMenu: [
-      { title: 'Hesap Bilgileri' },
-      { title: 'Hesap Güvenliği' },
+      { title: 'Hesap Güvenliği', path: '/dashboard/HesapGuvenligi'  },
     ],
   },
 ];
@@ -99,27 +90,40 @@ const Sidebar = () => {
         <ul className="sidebar-menu">
           {menu.map((item, idx) => (
             <li key={item.title}>
-              <div
-                className={`sidebar-menu-item${item.subMenu ? ' has-sub' : ''}`}
-                onClick={() => item.subMenu && handleMenuClick(idx)}
-              >
-                <span className="sidebar-icon">{item.icon}</span>
-                <span className="sidebar-title">{item.title}</span>
-                {/* Alt menü varsa ok ikonu */}
-                {item.subMenu && (
-                  <span className="sidebar-chevron">
-                    {openMenus[idx] ? <FaChevronDown /> : <FaChevronRight />}
-                  </span>
-                )}
-              </div>
-              {/* Alt menü */}
+              {item.path ? (
+                <Link to={item.path} className="sidebar-menu-item">
+                  <span className="sidebar-icon">{item.icon}</span>
+                  <span className="sidebar-title">{item.title}</span>
+                </Link>
+              ) : (
+                <div
+                  className={`sidebar-menu-item${item.subMenu ? ' has-sub' : ''}`}
+                  onClick={() => item.subMenu && handleMenuClick(idx)}
+                >
+                  <span className="sidebar-icon">{item.icon}</span>
+                  <span className="sidebar-title">{item.title}</span>
+                  {item.subMenu && (
+                    <span className="sidebar-chevron">
+                      {openMenus[idx] ? <FaChevronDown /> : <FaChevronRight />}
+                    </span>
+                  )}
+                </div>
+              )}
               {item.subMenu && openMenus[idx] && (
                 <ul className="sidebar-submenu">
                   {item.subMenu.map((sub, subIdx) => (
                     <li key={sub.title} className="sidebar-submenu-item">
-                      {/* Alt menüde ikon varsa göster */}
-                      {sub.icon && <span className="sidebar-icon">{sub.icon}</span>}
-                      <span className="sidebar-title">{sub.title}</span>
+                      {sub.path ? (
+                        <Link to={sub.path} className="sidebar-submenu-link">
+                          {sub.icon && <span className="sidebar-icon">{sub.icon}</span>}
+                          <span className="sidebar-title">{sub.title}</span>
+                        </Link>
+                      ) : (
+                        <>
+                          {sub.icon && <span className="sidebar-icon">{sub.icon}</span>}
+                          <span className="sidebar-title">{sub.title}</span>
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -135,4 +139,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-// Açıklama: Logonun olduğu üst kısma, en sağda konumlanan bir çıkış butonu eklendi. Butona tıklanınca şimdilik alert çalışıyor, gerçek çıkış işlemi eklenebilir. 

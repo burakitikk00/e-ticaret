@@ -36,13 +36,14 @@
 
 .sidebar-logout-btn:hover {
   background: #f7f5ff;
-  color: #4b1fa5;
+  color: rgb(255, 0, 141);
 }
 
 .sidebar-menu {
   list-style: none;
   padding: 0;
   margin: 0;
+ font-weight: 500;
 }
 
 .sidebar-menu-item {
@@ -68,7 +69,7 @@
   text-align: center;
 }
 
-.sidebar-title {
+.sidebar-title{
   flex: 1;
 }
 
@@ -85,23 +86,49 @@
 }
 
 .sidebar-submenu-item {
-  display: flex;
+  display: flex; /* Flex ekledim */
   align-items: center;
-  padding: 8px 0;
+  padding: 8px 16px; /* Padding ekledim */
   color: #666;
   font-size: 15px;
   cursor: pointer;
   border-radius: 6px;
   transition: background 0.2s, color 0.2s;
+  margin: 4px 0; /* Margin ekledim */
 }
 
 .sidebar-submenu-item:hover {
-  background: #f0f0f0;
+  background: #f7f5ff;
   color: rgb(255, 0, 141);
 }
 
+.sidebar-submenu-link {
+  color: #666;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  width: 100%; /* Genişlik ekledim */
+  border-radius: 6px; /* Border radius ekledim */
+}
+.sidebar-submenu-link a {
+  color: #666;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+
+  border-radius: 6px; /* Border radius ekledim */
+}
+
+
+.sidebar-submenu-link:hover {
+  color: rgb(255, 0, 141);
+  background: #f7f5ff; /* Hover'da arka plan rengi ekledim */
+}
+
 /* Responsive: Ekran daralınca sidebar gizlenebilir */
-@media (max-width: 900px) {
+@media (max-width: 322px) {
   .sidebarDashboard {
     position: static !important;
     width: 100% !important;
@@ -112,83 +139,15 @@
     border-right: none;
     border-bottom: 1px solid #f0f0f0;
   }
-  .sidebar-logo, .sidebar-title, .sidebar-chevron {
-    
-  }
+  
   .sidebar-menu-item, .sidebar-submenu-item {
     justify-content: center;
     padding: 8px 15px;
-
-   
   }
   .sidebar-submenu {
     padding-left: 0;
   }
 }
-
-/* Açıklama: Bu CSS, Sidebar.jsx componentinin shopier tarzı, modern ve sade bir şekilde görünmesini sağlar. Hover efektleri, responsive yapı ve ikon hizalamaları içerir. */
-/* Açıklama: Mobilde sidebar üstte ve tam genişlikte olacak şekilde responsive düzenleme eklendi. Artık içerik sidebar'ın altında başlar. */
-
-/* Hamburger butonu sadece mobilde görünür */
-.sidebar-hamburger {
-  display: none;
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 200;
-  background: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  cursor: pointer;
-}
-
-@media (max-width: 900px) {
-  .sidebar-hamburger {
-    display: block;
-  }
-  .sidebarDashboard {
-    position: fixed !important;
-    top: 0;
-    left: -65vw; /* BAŞLANGIÇTA EKRAN DIŞINDA SOLDA */
-    width: 80vw !important;
-    max-width: 320px;
-    height: 100vh !important;
-    background: #fff;
-    z-index: 300;
-    transition: left 0.3s;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.08);
-    border-bottom: none;
-    border-right: 1px solid #eee;
-  }
-  .sidebarDashboard.open {
-    left: 0; /* AÇILINCA EKRANA GELİR */
-  }
-  .sidebar-close {
-    display: block;
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: #7b2ff2;
-    z-index: 301;
-  }
-  .sidebar-backdrop {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.3);
-    z-index: 250;
-  }
-}
-
-/* Masaüstünde hamburger ve kapama butonu görünmez */
-.sidebar-close { display: none; }
-
-/* Açıklama: Bu CSS, Sidebar.jsx componentinin shopier tarzı, modern ve sade bir şekilde görünmesini sağlar. Hover efektleri, responsive yapı ve ikon hizalamaları içerir. */
-/* Açıklama: Mobilde sidebar üstte ve tam genişlikte olacak şekilde responsive düzenleme eklendi. Artık içerik sidebar'ın altında başlar. */
 
 /* Hamburger butonu sadece mobilde görünür */
 .sidebar-hamburger {
@@ -226,6 +185,12 @@
   .sidebarDashboard.open {
     left: 0; /* AÇILINCA EKRANA GELİR */
   }
+  .sidebar-submenu-link{
+    color: #666;
+  }
+  .sidebar-submenu-link:hover {
+    color: rgb(255, 0, 141); /* Hover yazı rengi değiştirildi */
+  }
   .sidebar-close {
     display: block;
     position: absolute;
@@ -234,7 +199,7 @@
     background: none;
     border: none;
     font-size: 24px;
-    color: #7b2ff2;
+    color: rgb(255, 0, 141);
     z-index: 301;
   }
   .sidebar-backdrop {
@@ -246,4 +211,4 @@
 }
 
 /* Masaüstünde hamburger ve kapama butonu görünmez */
-.sidebar-close { display: none; } 
+.sidebar-close { display: none; }
