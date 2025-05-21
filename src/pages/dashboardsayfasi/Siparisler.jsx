@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./../../css/dashboard/siparisler.css";
 import "../../css/Adreslerim.css"; // Modal için gerekli
+import { Link } from "react-router-dom"; // Link ekle
 
 // Örnek sipariş verisi
-const initialSiparisler = [
+export const initialSiparisler = [
   {
     no: "272934877",
     durum: "AÇIK",
@@ -11,10 +12,16 @@ const initialSiparisler = [
     musteri: "Serra Bahçıvan",
     urun: "Coach Trail Çapraz Çanta",
     tutar: "1.079,00 TL",
+    birimFiyat: "1.079,00 TL",
+    adet: 1,
+    toplamFiyat: "1.079,00 TL",
     adres: "Kiptaş Topkapı merkez evleri 2. Etap A-9 blok daire:58 Zeytinburnu İstanbul Türkiye",
     telefon: "+90 531 237 08 37",
     email: "serra.bahcivan@gmail.com",
     musteriNotu: "-",
+    resim: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    opsiyon: "Toz Torbası",
+    kombinasyon: "37 Numara / Siyah",
   },
   {
     no: "710253125",
@@ -22,11 +29,35 @@ const initialSiparisler = [
     tarih: "19/05/2025 11:36",
     musteri: "Merve Demir",
     urun: "Mini vakko Speddy",
-    tutar: "779,99 TL",
+    tutar: "1.559,98 TL",
+    birimFiyat: "779,99 TL",
+    adet: 2,
+    toplamFiyat: "1.559,98 TL",
     adres: "Adres örneği",
     telefon: "+90 555 111 22 33",
     email: "merve.demir@gmail.com",
-    musteriNotu: "-",
+    musteriNotu: "Hediye paketi olsun lütfen.",
+    resim: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    opsiyon: "Ekstra Askı",
+    kombinasyon: "Kırmızı / 36 Numara",
+  },
+  {
+    no: "613607977",
+    durum: "AÇIK",
+    tarih: "19/05/2025 19:05",
+    musteri: "Ayşenaz Alacücük",
+    urun: "Vakko Babet Ayakkabı",
+    tutar: "939,99 TL",
+    birimFiyat: "939,99 TL",
+    adet: 2,
+    toplamFiyat: "939,99 TL",
+    adres: "Ferahevler Adnan Kahveci caddesi no:106 Sarıyer İstanbul Türkiye",
+    telefon: "+90 541 801 78 95",
+    email: "alacucukaysenaz0@gmail.com",
+    musteriNotu: "Cumaya kadar yetişmesi lazım ürünü kullanacağım 😃",
+    resim: "https://images.unsplash.com/photo-1517260911205-8c1e1a0b6b8c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
+    opsiyon: "Toz Torbası, Ekstra Tabanlık",
+    kombinasyon: "37 Numara / Siyah",
   },
   // ... diğer siparişler
 ];
@@ -169,9 +200,9 @@ const Siparisler = () => {
   };
 
   return (
-    <div className="satistaki-urunler-container">
+    <div className="dashboard-siparisler-container">
       <div className="satistaki-baslik">SİPARİŞLER</div>
-      <table className="satistaki-table">
+      <table className="dashboard-siparisler-table">
         <thead>
           <tr>
             <th>SİPARİŞ NO</th>
@@ -190,11 +221,11 @@ const Siparisler = () => {
             return (
               <React.Fragment key={siparis.no}>
                 <tr
-                  className={acikSiparis === globalIndex ? "siparis-row acik" : "siparis-row"}
+                  className={acikSiparis === globalIndex ? "dashboard-siparis-row acik" : "dashboard-siparis-row"}
                   onClick={(e) => {
                     if (
-                      e.target.closest('.satistaki-islem-btn') ||
-                      e.target.closest('.satistaki-islem-menu')
+                      e.target.closest('.dashboard-islemler-btn') ||
+                      e.target.closest('.dashboard-dropdown-content')
                     ) {
                       return;
                     }
@@ -213,29 +244,29 @@ const Siparisler = () => {
                   <td data-label="İŞLEMLER" style={{ position: "relative" }}>
                     <div style={{ display: "inline-block" }}>
                       <button
-                        className="satistaki-islem-btn"
+                        className="dashboard-islemler-btn"
                         onClick={(e) => handleMenuToggle(globalIndex, e)}
                       >
                         İŞLEMLER ▼
                       </button>
                       {openMenu === globalIndex && (
-                        <div className="dropdown-content satistaki-islem-menu acik" ref={menuRef}>
+                        <div className="dashboard-dropdown-content acik" ref={menuRef}>
                           {siparis.durum === "AÇIK" && (
                             <div
-                              className="dropdown-item satistaki-islem-item"
+                              className="dashboard-dropdown-item"
                               onClick={() => handleSiparisKapat(globalIndex)}
                             >
                               Siparişi kapat
                             </div>
                           )}
                           <div
-                            className="dropdown-item satistaki-islem-item"
+                            className="dashboard-dropdown-item"
                             onClick={() => handleAdresDegistir(globalIndex)}
                           >
                             Teslimat adresini değiştir
                           </div>
                           <a
-                            className="dropdown-item satistaki-islem-item"
+                            className="dashboard-dropdown-item"
                             href={getWhatsappLink(siparis.telefon)}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -244,7 +275,7 @@ const Siparisler = () => {
                             Müşteriye WhatsApp'tan ulaş
                           </a>
                           <a
-                            className="dropdown-item satistaki-islem-item"
+                            className="dashboard-dropdown-item"
                             href={getMailLink(siparis.email)}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -252,7 +283,7 @@ const Siparisler = () => {
                           >
                             Müşteriye e-posta gönder
                           </a>
-                          <div className="dropdown-item satistaki-islem-item">Sipariş notu düzenle / görüntüle</div>
+                          <div className="dashboard-dropdown-item">Sipariş notu düzenle / görüntüle</div>
                         </div>
                       )}
                     </div>
@@ -260,17 +291,17 @@ const Siparisler = () => {
                 </tr>
                 {/* Sipariş detayları açılır satır */}
                 {acikSiparis === globalIndex && (
-                  <tr className="siparis-detay-row">
+                  <tr className="dashboard-siparis-detay-row">
                     <td colSpan={7}>
-                      <div className="siparis-detay">
+                      <div className="dashboard-siparis-detay">
                         <div><b>Adres:</b> {siparis.adres}</div>
                         <div><b>Telefon:</b> {siparis.telefon}</div>
                         <div><b>E-posta:</b> {siparis.email}</div>
                         <div><b>Müşteri Notu:</b> {siparis.musteriNotu}</div>
                         <div>
-                          <a href="#" style={{ color: "#0074d9" }}>
+                          <Link to={`/dashboard/siparisler/${siparis.no}`} style={{ color: "#0074d9" }}>
                             <span role="img" aria-label="info">📁</span> Tüm sipariş bilgilerini göster
-                          </a>
+                          </Link>
                         </div>
                       </div>
                     </td>

@@ -12,12 +12,12 @@ function Footer() {
                                 <div className="menu-section">
                                     <p className="section-title">KATEGORİLER</p>
                                     <ul>
-                                        <li><a href="/search">TÜM ÜRÜNLER</a></li>
-                                        <li><a href="/kadin-ayakkabilari">KADIN AYAKKABILARI</a></li>
-                                        <li><a href="/sallar-bereler">ŞALLAR</a></li>
-                                        <li><a href="/cantalar">ÇANTALAR</a></li>
-                                        <li><a href="/cuzdan">CÜZDAN & KARTLIK</a></li>
-                                        <li><a href="/gozluk">GÖZLÜK</a></li>
+                                        <li><a href="/Tum_urunler">TÜM ÜRÜNLER</a></li>
+                                        <li><a href="/Ayakkabilar">KADIN AYAKKABILARI</a></li>
+                                        <li><a href="/Sallar">ŞALLAR</a></li>
+                                        <li><a href="/Canta">ÇANTALAR</a></li>
+                                        <li><a href="/CuzdanKartlik">CÜZDAN & KARTLIK</a></li>
+                                        <li><a href="/Gozlukler">GÖZLÜK</a></li>
                                     </ul>
                                 </div>
 

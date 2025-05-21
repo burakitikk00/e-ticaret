@@ -1,8 +1,29 @@
-
 import React from 'react';
 import Slider from 'react-slick';
 import '../css/Slider.css';
+
 const Sliders = () => {
+    // Özel ok bileşenlerini ayrı fonksiyonlar olarak tanımlıyoruz
+    const NextArrow = ({ onClick }) => (
+        <button className="slick-arrow slick-next" onClick={onClick} aria-label="Next" type="button">
+            <div className="arrow-next">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </div>
+        </button>
+    );
+
+    const PrevArrow = ({ onClick }) => (
+        <button className="slick-arrow slick-prev" onClick={onClick} aria-label="Previous" type="button">
+            <div className="arrow-prev">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </div>
+        </button>
+    );
+
     const settings = {
         dots: true,
         infinite: true,
@@ -10,24 +31,8 @@ const Sliders = () => {
         slidesToShow: 1,
         slidesToScroll: 1,
         autoplay: true,
-        nextArrow: (
-            <button className="slick-arrow slick-next" aria-label="Next">
-                <div className="arrow-next">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </div>
-            </button>
-        ),
-        prevArrow: (
-            <button className="slick-arrow slick-prev" aria-label="Previous">
-                <div className="arrow-prev">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </div>
-            </button>
-        )
+        nextArrow: <NextArrow />,
+        prevArrow: <PrevArrow />
     };
 
     const images = [

@@ -6,6 +6,101 @@
 
 .slider.multiple {
     width: 100%;
+    position: relative;
+}
+
+.slider.multiple .slick-slider.slick-initialized {
+    position: relative;
+    padding: 0 4rem; /* Ana slider için daha fazla boşluk */
+}
+
+.slider.multiple .slick-slider.slick-initialized .slick-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-105%); /* Ok tuşlarını yukarı taşıyoruz */
+    z-index: 10;
+    width: 3rem; /* Ana slider için daha büyük oklar */
+    height: 3rem;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider.multiple .slick-slider.slick-initialized .slick-prev {
+    left: 0.5rem;
+}
+
+.slider.multiple .slick-slider.slick-initialized .slick-next {
+    right: 0.5rem;
+}
+
+.slider.multiple .slick-slider.slick-initialized .arrow-prev,
+.slider.multiple .slick-slider.slick-initialized .arrow-next {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9); /* Daha opak arka plan */
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hafif gölge efekti */
+}
+
+.slider.multiple .slick-slider.slick-initialized .arrow-prev:hover,
+.slider.multiple .slick-slider.slick-initialized .arrow-next:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.1); /* Hover'da büyüme efekti */
+}
+
+.slider.multiple .slick-slider.slick-initialized .arrow-prev svg,
+.slider.multiple .slick-slider.slick-initialized .arrow-next svg {
+    width: 100%;
+    height: 100%;
+    color: var(--primary-color, #000);
+}
+
+@media (max-width: 768px) {
+    .slider.multiple .slick-slider.slick-initialized {
+        padding: 0 3rem; /* Mobilde daha az boşluk */
+    }
+
+    .slider.multiple .slick-slider.slick-initialized .slick-arrow {
+        width: 2.5rem; /* Mobilde daha küçük oklar */
+        height: 2.5rem;
+        transform: translateY(-150%); /* Mobilde daha az yukarı */
+    }
+
+    .slider.multiple .slick-slider.slick-initialized .slick-prev {
+        left: 0.25rem;
+    }
+
+    .slider.multiple .slick-slider.slick-initialized .slick-next {
+        right: 0.25rem;
+    }
+}
+
+/* Dots stilleri */
+.slider.multiple .slick-dots {
+    bottom: 1rem;
+    z-index: 5;
+}
+
+.slider.multiple .slick-dots li button {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    transition: all 0.3s ease;
+}
+
+.slider.multiple .slick-dots li.slick-active button {
+    background: #fff;
+    transform: scale(1.2);
 }
 
 .slider-wrapper {

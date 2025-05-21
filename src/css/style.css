@@ -58,42 +58,12 @@
     width: 100%;
 }
 
-.slick-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-150%);
-    z-index: 10;
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0.375rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    display: none;
-}
-
-.slick-prev {
-    left: 0rem;
-}
-
-.slick-next {
-    right: 0rem;
-}
-
+.slick-arrow,
+.slick-prev,
+.slick-next,
 .arrow-prev,
 .arrow-next {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-}
-
-.arrow-prev svg,
-.arrow-next svg {
-    width: 100%;
-    height: 100%;
-    color: var(--primary-color, #000);
+    /* Bu stiller artık kullanılmayacak */
 }
 
 .slick-slide {
@@ -234,4 +204,76 @@
     .slick-slide {
         padding: 0.25rem;
     }
+}
+
+@media (max-width: 768px) {
+    .slick-arrow,
+    .slick-prev,
+    .slick-next,
+    .arrow-prev,
+    .arrow-next {
+        /* Bu stiller artık kullanılmayacak */
+    }
+
+    .products-recommendation-slider.slick-slider.slick-initialized {
+        padding: 0 2rem; /* Mobilde daha az boşluk */
+    }
+
+    .products-recommendation-slider.slick-slider.slick-initialized .slick-arrow {
+        width: 2rem;
+        height: 2rem;
+    }
+}
+
+.products-recommendation-slider.slick-slider.slick-initialized {
+    position: relative;
+    padding: 0 3rem; /* Ok tuşları için sağdan ve soldan boşluk */
+}
+
+.products-recommendation-slider.slick-slider.slick-initialized .slick-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-170%);
+    z-index: 10;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.375rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.products-recommendation-slider.slick-slider.slick-initialized .slick-prev {
+    left: 0;
+}
+
+.products-recommendation-slider.slick-slider.slick-initialized .slick-next {
+    right: 0;
+}
+
+.products-recommendation-slider.slick-slider.slick-initialized .arrow-prev,
+.products-recommendation-slider.slick-slider.slick-initialized .arrow-next {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.products-recommendation-slider.slick-slider.slick-initialized .arrow-prev:hover,
+.products-recommendation-slider.slick-slider.slick-initialized .arrow-next:hover {
+    background: rgba(255, 255, 255, 1);
+}
+
+.products-recommendation-slider.slick-slider.slick-initialized .arrow-prev svg,
+.products-recommendation-slider.slick-slider.slick-initialized .arrow-next svg {
+    width: 100%;
+    height: 100%;
+    color: var(--primary-color, #000);
 }

@@ -3,6 +3,9 @@ import '../css/Header.css'
 import { FaShoppingBag, FaTimes } from "react-icons/fa";
 import { CiLogin } from "react-icons/ci";
 import { FaBars } from "react-icons/fa";
+import LoginModal from './LoginModal';
+import { useUser } from '../context/UserContext';
+import UserMenu from './UserMenu';
 
 function Header() {
     const [showBagMenu, setShowBagMenu] = useState(false);
@@ -36,6 +39,7 @@ function Header() {
     const [loginError, setLoginError] = useState('');
     const [registerError, setRegisterError] = useState('');
     const [registerSuccess, setRegisterSuccess] = useState('');
+    const { user, login, register } = useUser();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -63,18 +67,22 @@ function Header() {
 
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         if (loginEmail && loginPassword) {
-            setLoginError('');
-            setShowLoginModal(false);
-            alert('Giriş başarılı!');
+            const result = await login(loginEmail, loginPassword);
+            if (result.success) {
+                setLoginError('');
+                setShowLoginModal(false);
+            } else {
+                setLoginError(result.error);
+            }
         } else {
             setLoginError('E-posta ve şifre giriniz.');
         }
     };
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
         if (!registerEmail || !registerPassword || !registerPassword2) {
             setRegisterError('Tüm alanları doldurunuz.');
@@ -86,12 +94,19 @@ function Header() {
             setRegisterSuccess('');
             return;
         }
-        setRegisterError('');
-        setRegisterSuccess('Kayıt başarılı! Giriş yapabilirsiniz.');
-        setTimeout(() => {
-            setIsRegister(false);
+
+        const result = await register(registerEmail, registerPassword, registerEmail.split('@')[0]);
+        if (result.success) {
+            setRegisterError('');
+            setRegisterSuccess('Kayıt başarılı! Giriş yapabilirsiniz.');
+            setTimeout(() => {
+                setIsRegister(false);
+                setRegisterSuccess('');
+            }, 1500);
+        } else {
+            setRegisterError(result.error);
             setRegisterSuccess('');
-        }, 1500);
+        }
     };
 
     return (
@@ -132,29 +147,28 @@ function Header() {
                 {/* Masaüstü navigasyon */}
                 <nav className={`nav-menu desktop-menu ${isSidebarOpen ? 'active' : ''}`}>
                     <ul>
-                        <li><a href="#" className="menu-item">TÜM ÜRÜNLER</a></li>
+                        <li><a href="/Tum_urunler" className="menu-item">TÜM ÜRÜNLER</a></li>
                         <li className="dropdown"
                             onMouseEnter={() => setShowBagMenu(true)}
                             onMouseLeave={() => setShowBagMenu(false)}>
-                            <a href="#" className="menu-item">ÇANTALAR</a>
+                            <a href="/Canta" className="menu-item">ÇANTALAR</a>
                             {showBagMenu && (
                                 <div className="dropdown-container">
                                     <ul className="dropdown-menu">
-
                                         <li>
-                                            <a href="#" className="dropdown-item">
+                                            <a href="/Canta" className="dropdown-item">
                                                 <img src="./src/Images/omuz_cantası.png" alt="Omuz Çantası" className="dropdown-image" />
                                                 <span>Omuz Çantaları</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" className="dropdown-item">
+                                            <a href="/Canta" className="dropdown-item">
                                                 <img src="./src/Images/sırt_cantası.png" alt="Sırt Çantası" className="dropdown-image" />
                                                 <span>Sırt Çantaları</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" className="dropdown-item">
+                                            <a href="/Canta" className="dropdown-item">
                                                 <img src="./src/Images/postacı_cantası.png" alt="Postacı Çantası" className="dropdown-image" />
                                                 <span>Postacı Çantaları</span>
                                             </a>
@@ -163,10 +177,10 @@ function Header() {
                                 </div>
                             )}
                         </li>
-                        <li><a href="#" className="menu-item">GÖZLÜKLER</a></li>
-                        <li><a href="#" className="menu-item">CÜZDAN & KARTLIK</a></li>
-                        <li><a href="#" className="menu-item">ŞALLAR</a></li>
-                        <li><a href="#" className="menu-item">KADIN AYAKKABILAR</a></li>
+                        <li><a href="/Gozlukler" className="menu-item">GÖZLÜKLER</a></li>
+                        <li><a href="/CuzdanKartlik" className="menu-item">CÜZDAN & KARTLIK</a></li>
+                        <li><a href="/Sallar" className="menu-item">ŞALLAR</a></li>
+                        <li><a href="/Ayakkabilar" className="menu-item">KADIN AYAKKABILAR</a></li>
                     </ul>
                 </nav>
 
@@ -176,34 +190,33 @@ function Header() {
                     <div className="sidebar-content">
                         <ul>
                             <li>
-                                <a href="#" className="menu-item">
+                                <a href="/Tum_urunler" className="menu-item">
                                     <span>TÜM ÜRÜNLER</span>
                                     <img src="./src/Images/Tüm_ürünler.jpg" alt="Tüm Ürünler" className="sidebar-image" />
                                 </a>
                             </li>
                             <li className="dropdown"
                                 onClick={() => setShowSidebarBagMenu(!showSidebarBagMenu)}>
-                                <a href="#" className="menu-item">
+                                <a href="/Canta" className="menu-item">
                                     <span>ÇANTALAR</span>
                                     <img src="./src/Images/Çantalar.png" alt="Çantalar" className="sidebar-image" />
                                 </a>
                                 {showSidebarBagMenu && (
                                     <ul className="sidebar-submenu">
-
                                         <li>
-                                            <a href="#" className="dropdown-item">
+                                            <a href="/Canta" className="dropdown-item">
                                                 <img src="./src/Images/omuz_cantası.png" alt="Omuz Çantası" className="dropdown-image" />
                                                 <span>Omuz Çantaları</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" className="dropdown-item">
+                                            <a href="/Canta" className="dropdown-item">
                                                 <img src="./src/Images/sırt_cantası.png" alt="Sırt Çantası" className="dropdown-image" />
                                                 <span>Sırt Çantaları</span>
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#" className="dropdown-item">
+                                            <a href="/Canta" className="dropdown-item">
                                                 <img src="./src/Images/postacı_cantası.png" alt="Postacı Çantası" className="dropdown-image" />
                                                 <span>Postacı Çantaları</span>
                                             </a>
@@ -212,28 +225,25 @@ function Header() {
                                 )}
                             </li>
                             <li>
-                                <a href="#" className="menu-item">
+                                <a href="/Gozlukler" className="menu-item">
                                     <span>GÖZLÜKLER</span>
                                     <img src="./src/Images/gözlükler.png" alt="Gözlükler" className="sidebar-image" />
                                 </a>
                             </li>
                             <li>
-
-                                <a href="#" className="menu-item">
+                                <a href="/Ayakkabilar" className="menu-item">
                                     <span>AYAKKABI MODELLERİ</span>
                                     <img src="./src/Images/ayakkabı.png" alt="Şal Modelleri" className="sidebar-image" />
                                 </a>
                             </li>
                             <li>
-
-                                <a href="#" className="menu-item">
+                                <a href="/CuzdanKartlik" className="menu-item">
                                     <span>CÜZDAN & KARTLIK </span>
                                     <img src="./src/Images/cüzdan_kartlik.png" alt="Şal Modelleri" className="sidebar-image" />
                                 </a>
                             </li>
                             <li>
-
-                                <a href="#" className="menu-item">
+                                <a href="/Sallar" className="menu-item">
                                     <span>ŞAL MODELLERİ</span>
                                     <img src="./src/Images/şallar.png" alt="Şal Modelleri" className="sidebar-image" />
                                 </a>
@@ -301,46 +311,44 @@ function Header() {
 
                 <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center' }}>
                     <input className='search-input' type="text" placeholder='Ürün arayın ' />
-                    <CiLogin className='icons' style={{ position: 'relative', marginLeft: '10px', marginRight: '10px', cursor: 'pointer' }} onClick={() => setShowLoginModal(true)} />
-                    {showLoginModal && (
-                        <div style={{
-                            position: 'fixed',
-                            top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.3)',
-                            zIndex: 3001,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}>
-                            <div style={{background:'#fff', borderRadius:16, padding:32, minWidth:340, boxShadow:'0 4px 32px rgba(0,0,0,0.15)', position:'relative'}}>
-                                <button onClick={() => setShowLoginModal(false)} style={{position:'absolute', top:12, right:12, fontSize:22, background:'none', border:'none', cursor:'pointer'}}>&times;</button>
-                                <h2 style={{textAlign:'center', marginBottom:24}}>{isRegister ? 'Kayıt Ol' : 'Giriş Yap'}</h2>
-                                {!isRegister ? (
-                                    <form onSubmit={handleLogin}>
-                                        <input type="email" placeholder="E-posta" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} style={{width:'100%',padding:10,marginBottom:12,borderRadius:8,border:'1px solid #ccc'}} />
-                                        <input type="password" placeholder="Şifre" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} style={{width:'100%',padding:10,marginBottom:12,borderRadius:8,border:'1px solid #ccc'}} />
-                                        {loginError && <div style={{color:'red', marginBottom:8}}>{loginError}</div>}
-                                        <button type="submit" style={{width:'100%',padding:12,background:'#222',color:'#fff',border:'none',borderRadius:8,fontWeight:'bold',fontSize:16,marginBottom:8}}>Giriş Yap</button>
-                                        <div style={{textAlign:'center'}}>
-                                            <span>Hesabınız yok mu? </span>
-                                            <span style={{color:'#007bff',cursor:'pointer'}} onClick={()=>{setIsRegister(true);setLoginError('')}}>Kayıt Ol</span>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <form onSubmit={handleRegister}>
-                                        <input type="email" placeholder="E-posta" value={registerEmail} onChange={e => setRegisterEmail(e.target.value)} style={{width:'100%',padding:10,marginBottom:12,borderRadius:8,border:'1px solid #ccc'}} />
-                                        <input type="password" placeholder="Şifre" value={registerPassword} onChange={e => setRegisterPassword(e.target.value)} style={{width:'100%',padding:10,marginBottom:12,borderRadius:8,border:'1px solid #ccc'}} />
-                                        <input type="password" placeholder="Şifre Tekrar" value={registerPassword2} onChange={e => setRegisterPassword2(e.target.value)} style={{width:'100%',padding:10,marginBottom:12,borderRadius:8,border:'1px solid #ccc'}} />
-                                        {registerError && <div style={{color:'red', marginBottom:8}}>{registerError}</div>}
-                                        {registerSuccess && <div style={{color:'green', marginBottom:8}}>{registerSuccess}</div>}
-                                        <button type="submit" style={{width:'100%',padding:12,background:'#222',color:'#fff',border:'none',borderRadius:8,fontWeight:'bold',fontSize:16,marginBottom:8}}>Kayıt Ol</button>
-                                        <div style={{textAlign:'center'}}>
-                                            <span>Zaten hesabınız var mı? </span>   
-                                            <span style={{color:'#007bff',cursor:'pointer'}} onClick={()=>{setIsRegister(false);setRegisterError('');}}>Giriş Yap</span>
-                                        </div>
-                                    </form>
-                                )}
-                            </div>
-                        </div>
+                    
+                    {user ? (
+                        <UserMenu />
+                    ) : (
+                        <CiLogin 
+                            className='icons' 
+                            style={{ 
+                                position: 'relative', 
+                                marginLeft: '10px', 
+                                marginRight: '10px', 
+                                cursor: 'pointer' 
+                            }} 
+                            onClick={() => setShowLoginModal(true)} 
+                        />
                     )}
+                    
+                    <LoginModal 
+                        showLoginModal={showLoginModal}
+                        setShowLoginModal={setShowLoginModal}
+                        isRegister={isRegister}
+                        setIsRegister={setIsRegister}
+                        loginEmail={loginEmail}
+                        setLoginEmail={setLoginEmail}
+                        loginPassword={loginPassword}
+                        setLoginPassword={setLoginPassword}
+                        registerEmail={registerEmail}
+                        setRegisterEmail={setRegisterEmail}
+                        registerPassword={registerPassword}
+                        setRegisterPassword={setRegisterPassword}
+                        registerPassword2={registerPassword2}
+                        setRegisterPassword2={setRegisterPassword2}
+                        loginError={loginError}
+                        registerError={registerError}
+                        registerSuccess={registerSuccess}
+                        handleLogin={handleLogin}
+                        handleRegister={handleRegister}
+                    />
+
                     <div style={{ position: 'relative', marginLeft: '10px', marginRight: '20px' }}>
                         <FaShoppingBag className='icons' style={{ cursor: 'pointer' }} onClick={() => setIsCartOpen(true)} />
                         {cartItems.length > 0 && (

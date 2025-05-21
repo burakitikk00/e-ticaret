@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import '../css/style.css'
+
 function Cantalar() {
+    // Özel ok bileşenlerini ayrı fonksiyonlar olarak tanımlıyoruz
+    const NextArrow = ({ onClick }) => (
+        <button className="slick-arrow slick-next" onClick={onClick} aria-label="Next" type="button">
+            <div className="arrow-next">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </div>
+        </button>
+    );
+
+    const PrevArrow = ({ onClick }) => (
+        <button className="slick-arrow slick-prev" onClick={onClick} aria-label="Previous" type="button">
+            <div className="arrow-prev">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </div>
+        </button>
+    );
+
     const [products, setProducts] = useState([
         {
             id: 1,
@@ -59,24 +81,8 @@ function Cantalar() {
         speed: 500,
         slidesToShow: 4,
         slidesToScroll: 1,
-        prevArrow: (
-            <button className="slick-arrow slick-prev" aria-label="Previous">
-                <div className="arrow-prev">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </div>
-            </button>
-        ),
-        nextArrow: (
-            <button className="slick-arrow slick-next" aria-label="Next">
-                <div className="arrow-next">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                </div>
-            </button>
-        ),
+        nextArrow: <NextArrow />,
+        prevArrow: <PrevArrow />,
         responsive: [
             {
                 breakpoint: 768,
@@ -120,7 +126,7 @@ function Cantalar() {
                     </div>
                 ))}
             </Slider>
-            <a class="link" href="/yeni-gelenler">Tümünü Gör</a>
+            <a class="link" href="/Canta">Tümünü Gör</a>
         </div>
     );
 }

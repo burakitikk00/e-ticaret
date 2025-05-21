@@ -20,7 +20,7 @@ function Ikilikesfet() {
                                         loading="lazy"
                                     />
                                 </div>
-                                <a href="/gozluk" class="kesfet-link">
+                                <a href="/Gozlukler" class="kesfet-link">
                                     <div class="kesfet-metin">
                                         <p class="alt-baslik">Keşfet</p>
                                         <p class="ana-baslik">Gözlük Koleksiyonu</p>
@@ -40,7 +40,7 @@ function Ikilikesfet() {
                                         loading="lazy"
                                     />
                                 </div>
-                                <a href="/cantalar" class="kesfet-link">
+                                <a href="/Canta" class="kesfet-link">
                                     <div class="kesfet-metin">
                                         <p class="alt-baslik">Keşfet</p>
                                         <p class="ana-baslik">Çanta Koleksiyonu</p>

@@ -1,0 +1,30 @@
+// MSSQL veritabanı bağlantı yapılandırması
+import sql from 'mssql';
+
+const dbConfig = {
+    server: 'DESKTOP-8IUA2EP', // Sunucu adınız
+    database: 'DBLinaButik',    // Veritabanı adınız
+    user: 'birincilkullanici',  // SQL Server'da oluşturduğunuz kullanıcı adı
+    password: '58500', // Oluşturduğunuz şifre
+    options: {
+        encrypt: true, // Encryption mandatory ise true
+        trustServerCertificate: true // Sertifika zorunluysa true
+    }
+};
+
+export async function connectDB() {
+    try {
+        console.log('Bağlantı deneniyor...', dbConfig);
+        const pool = await sql.connect(dbConfig);
+        console.log('Veritabanına başarıyla bağlanıldı!');
+        return pool;
+    } catch (err) {
+        console.error('Veritabanı bağlantı hatası:', err);
+        if (err.originalError) {
+            console.error('Orijinal hata:', err.originalError);
+        }
+        throw err;
+    }
+}
+
+export { sql, dbConfig };

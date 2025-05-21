@@ -7,6 +7,8 @@ import Siparisler from './Siparisler';
 import VaryasyonAyarlar from './VaryasyonAyarlar';
 import HesapGuvenligi from './HesapGuvenligi';
 import HesapOzeti from './HesapOzeti';
+import SiparisDetay from './SiparisDetay';
+
 const DashboardLayout = () => {
   return (
     <div className="dashboard-layout-container">
@@ -18,6 +20,7 @@ const DashboardLayout = () => {
         <Route path="/urun-listeleme" element={<UrunListeleme />} />
         <Route path="/satistaki-urunler" element={<SatistakiUrunler />} />
         <Route path="/siparisler" element={<Siparisler />} />
+        <Route path="/siparisler/:siparisNo" element={<SiparisDetay />} />
         <Route path="/VaryasyonAyarlar" element={<VaryasyonAyarlar />} />
         <Route path="/HesapGuvenligi" element={<HesapGuvenligi />} />
         <Route path="/HesapOzeti" element={<HesapOzeti />} />

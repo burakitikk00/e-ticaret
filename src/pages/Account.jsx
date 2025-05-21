@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import "../css/Account.css";
 import Siparislerim from "./Siparislerim";
 import Adreslerim from "./Adreslerim";
@@ -32,15 +34,18 @@ const emptyAddress = {
 };
 
 const Account = () => {
+  const { user, updateUserInfo } = useUser();
+  const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState("siparislerim");
-  // Kişisel bilgiler için state
-  const [userInfo, setUserInfo] = useState({ 
-    ad: "Ali", 
-    soyad: "Veli", 
-    email: "ali@eposta.com",
-    telefon: "5XX XXX XX XX"
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: ''
   });
-  const [editUser, setEditUser] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -48,20 +53,50 @@ const Account = () => {
     confirmPassword: ""
   });
   const [passwordError, setPasswordError] = useState("");
-  // Adres ekleme/düzenleme için state
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [newAddress, setNewAddress] = useState(emptyAddress);
-  const [editIndex, setEditIndex] = useState(null); // Düzenlenen adresin indexi
+  const [editIndex, setEditIndex] = useState(null);
 
-  // Kişisel bilgiler güncelleme fonksiyonu
-  const handleUserChange = (e) => {
-    setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
+  useEffect(() => {
+    if (!user) {
+      navigate('/');
+      return;
+    }
+
+    // Kullanıcı bilgilerini form'a yükle
+    setFormData({
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      address: user.address || ''
+    });
+  }, [user, navigate]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-  const handleUserSave = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setEditUser(false);
-    // Burada API'ye güncelleme isteği atabilirsin
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await updateUserInfo(formData);
+      if (result.success) {
+        setSuccess('Bilgileriniz başarıyla güncellendi');
+        setIsEditing(false);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError('Bilgiler güncellenirken bir hata oluştu');
+    }
   };
 
   // Şifre değiştirme fonksiyonları
@@ -136,92 +171,91 @@ const Account = () => {
       case "kisisel":
         return (
           <div>
-            <h2>KİŞİSEL BİLGİLERİM</h2>
-            {editUser ? (
-              <form onSubmit={handleUserSave} className="kisisel-form">
-                <label>Ad
-                  <input name="ad" value={userInfo.ad} onChange={handleUserChange} required />
-                </label>
-                <label>Soyad
-                  <input name="soyad" value={userInfo.soyad} onChange={handleUserChange} required />
-                </label>
-                <label>Email
-                  <input name="email" value={userInfo.email} onChange={handleUserChange} required type="email" />
-                </label>
-                <label>Telefon
-                  <input 
-                    name="telefon" 
-                    value={userInfo.telefon} 
-                    onChange={handleUserChange} 
-                    required 
-                    placeholder="5XX XXX XX XX"
-                    pattern="[0-9\s]*"
-                    maxLength="12"
-                  />
-                </label>
-                <div className="form-buttons">
-                  <button type="submit">Kaydet</button>
-                  <button type="button" onClick={() => setEditUser(false)}>İptal</button>
-                </div>
-              </form>
-            ) : (
-              <div className="kisisel-bilgiler">
-                <div><b>Ad:</b> {userInfo.ad}</div>
-                <div><b>Soyad:</b> {userInfo.soyad}</div>
-                <div><b>Email:</b> {userInfo.email}</div>
-                <div><b>Telefon:</b> {userInfo.telefon}</div>
-                <div className="kisisel-buttons">
-                  <button onClick={() => setEditUser(true)}>Bilgileri Düzenle</button>
-                  <button onClick={() => setShowPasswordForm(true)}>Şifre Değiştir</button>
-                </div>
-              </div>
-            )}
+            <h2>Hesap Bilgileri</h2>
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">{success}</div>}
 
-            {/* Şifre Değiştirme Modal */}
-            {showPasswordForm && (
-              <div className="modal-overlay">
-                <div className="modal-content">
-                  <button className="modal-close" onClick={() => { setShowPasswordForm(false); setPasswordError(""); }}>&times;</button>
-                  <h2 style={{textAlign: 'center', marginBottom: 24}}>Şifre Değiştir</h2>
-                  <form onSubmit={handlePasswordSubmit} className="password-form">
-                    <label>Mevcut Şifre *
-                      <input 
-                        type="password" 
-                        name="currentPassword" 
-                        value={passwordForm.currentPassword} 
-                        onChange={handlePasswordChange} 
-                        required 
-                      />
-                    </label>
-                    <label>Yeni Şifre *
-                      <input 
-                        type="password" 
-                        name="newPassword" 
-                        value={passwordForm.newPassword} 
-                        onChange={handlePasswordChange} 
-                        required 
-                        minLength="6"
-                      />
-                    </label>
-                    <label>Yeni Şifre (Tekrar) *
-                      <input 
-                        type="password" 
-                        name="confirmPassword" 
-                        value={passwordForm.confirmPassword} 
-                        onChange={handlePasswordChange} 
-                        required 
-                        minLength="6"
-                      />
-                    </label>
-                    {passwordError && <div className="error-message">{passwordError}</div>}
-                    <div className="modal-buttons">
-                      <button type="submit" className="modal-submit-btn">Şifreyi Değiştir</button>
-                      <button type="button" className="modal-cancel-btn" onClick={() => { setShowPasswordForm(false); setPasswordError(""); }}>İptal</button>
-                    </div>
-                  </form>
-                </div>
+            <form onSubmit={handleSubmit} className="account-form">
+              <div className="form-group">
+                <label>Ad Soyad</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                />
               </div>
-            )}
+
+              <div className="form-group">
+                <label>E-posta</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Telefon</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Adres</label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-actions">
+                {!isEditing ? (
+                  <button 
+                    type="button" 
+                    className="edit-button"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Düzenle
+                  </button>
+                ) : (
+                  <>
+                    <button 
+                      type="submit" 
+                      className="save-button"
+                    >
+                      Kaydet
+                    </button>
+                    <button 
+                      type="button" 
+                      className="cancel-button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setFormData({
+                          name: user.name || '',
+                          email: user.email || '',
+                          phone: user.phone || '',
+                          address: user.address || ''
+                        });
+                      }}
+                    >
+                      İptal
+                    </button>
+                  </>
+                )}
+              </div>
+            </form>
           </div>
         );
       case "favori":

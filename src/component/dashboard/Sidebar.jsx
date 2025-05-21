@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../css/Sidebar.css' // Stil dosyasını ayrıca oluşturacağız
 import { FaHome, FaBoxOpen, FaTags, FaStore, FaUser, FaChevronDown, FaChevronRight, FaCogs, FaImage, FaThList, FaBoxes, FaTruck, FaPercent, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
 
@@ -41,6 +41,7 @@ const menu = [
 ];
 
 const Sidebar = () => {
+  const navigate = useNavigate();
   // Açık olan menüleri tutmak için state
   const [openMenus, setOpenMenus] = useState({});
   // Mobilde sidebar açma/kapatma için state
@@ -54,10 +55,21 @@ const Sidebar = () => {
     }));
   };
 
-  // Çıkış butonuna tıklanınca çalışacak fonksiyon (şimdilik alert)
-  const handleLogout = () => {
-    alert('Çıkış yapıldı!');
-    // Buraya gerçek çıkış işlemini ekleyebilirsin
+  // Çıkış butonuna tıklanınca çalışacak fonksiyon
+  const handleLogout = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      // LocalStorage'dan token ve user bilgilerini temizle
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Login sayfasına yönlendir
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Çıkış yapma hatası:', error);
+    }
   };
 
   return (

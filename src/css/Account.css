@@ -3,24 +3,35 @@
   display: flex;
   min-height: 80vh;
   background: #fff;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
 }
 
-/* Sol menü */
+.account-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.account-container h3 {
+  margin-bottom: 24px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
 .account-menu {
   width: 250px;
   border-right: 1px solid #eee;
   padding: 32px 16px;
   background: #fafafa;
 }
-.account-menu h3 {
-  margin-bottom: 24px;
-  font-size: 20px;
-  font-weight: bold;
-}
+
 .account-menu ul {
   list-style: none;
   padding: 0;
 }
+
 .account-menu li {
   margin: 18px 0;
   font-size: 16px;
@@ -28,6 +39,7 @@
   transition: color 0.2s;
   color: #222;
 }
+
 .account-menu li.active {
   font-weight: bold;
   color: #4caf50;
@@ -52,6 +64,7 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
 .adres-ekle-btn:hover {
   background: #4caf50;
   color: #fff;
@@ -61,6 +74,7 @@
 .siparislerim-container {
   width: 100%;
 }
+
 .siparis-card {
   border: 1px solid #eee;
   border-radius: 8px;
@@ -69,6 +83,7 @@
   background: #fcfcfc;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
+
 .siparis-info {
   margin-bottom: 18px;
   font-size: 15px;
@@ -78,11 +93,13 @@
 .progress-bar-wrapper {
   margin-top: 10px;
 }
+
 .progress-bar {
   display: flex;
   align-items: center;
   margin-bottom: 8px;
 }
+
 .progress-step {
   width: 100px;
   height: 10px;
@@ -90,19 +107,23 @@
   border-radius: 5px;
   transition: background 0.3s;
 }
+
 .progress-step.active {
   background: #4caf50;
 }
+
 .progress-arrow {
   margin: 0 8px;
   font-size: 18px;
   color: #888;
 }
+
 .progress-labels {
   display: flex;
   justify-content: space-between;
   margin-top: 2px;
 }
+
 .progress-label {
   font-size: 12px;
   color: #444;
@@ -117,6 +138,7 @@
   gap: 12px;
   max-width: 350px;
 }
+
 .kisisel-form label {
   font-size: 15px;
   font-weight: 500;
@@ -124,12 +146,14 @@
   flex-direction: column;
   gap: 4px;
 }
+
 .kisisel-form input {
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 15px;
 }
+
 .kisisel-form button {
   margin-top: 8px;
   padding: 8px 18px;
@@ -141,12 +165,14 @@
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .kisisel-form button[type="button"] {
   background: #eee;
   color: #222;
   border: 1px solid #bbb;
   margin-left: 8px;
 }
+
 .kisisel-bilgiler {
   font-size: 16px;
   margin-bottom: 12px;
@@ -154,6 +180,7 @@
   flex-direction: column;
   gap: 6px;
 }
+
 .kisisel-bilgiler button {
   margin-top: 10px;
   padding: 8px 18px;
@@ -174,6 +201,7 @@
   max-width: 400px;
   margin-top: 16px;
 }
+
 .adres-form label {
   font-size: 15px;
   font-weight: 500;
@@ -181,12 +209,14 @@
   flex-direction: column;
   gap: 4px;
 }
+
 .adres-form input {
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 15px;
 }
+
 .adres-form button {
   margin-top: 8px;
   padding: 8px 18px;
@@ -198,12 +228,14 @@
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .adres-form button[type="button"] {
   background: #eee;
   color: #222;
   border: 1px solid #bbb;
   margin-left: 8px;
 }
+
 .adres-listesi {
   margin: 12px 0 18px 0;
   padding: 0 0 0 18px;
@@ -222,10 +254,12 @@
   flex-direction: column;
   gap: 18px;
 }
+
 .adres-form-row {
   display: flex;
   gap: 24px;
 }
+
 .detayli-adres-form label {
   flex: 1;
   font-size: 15px;
@@ -234,6 +268,7 @@
   flex-direction: column;
   gap: 6px;
 }
+
 .detayli-adres-form input,
 .detayli-adres-form select,
 .detayli-adres-form textarea {
@@ -247,20 +282,24 @@
   transition: border-color 0.2s;
   resize: none;
 }
+
 .detayli-adres-form input:focus,
 .detayli-adres-form select:focus,
 .detayli-adres-form textarea:focus {
   border-bottom: 2px solid #4caf50;
   background: #fff;
 }
+
 .detayli-adres-form textarea {
   min-height: 60px;
   max-height: 120px;
 }
+
 .detayli-adres-form select:disabled {
   background: #f0f0f0;
   color: #aaa;
 }
+
 .detayli-adres-form button[type="submit"] {
   margin: 32px auto 0 auto;
   display: block;
@@ -277,11 +316,13 @@
   transition: background 0.2s, color 0.2s;
   cursor: pointer;
 }
+
 .detayli-adres-form button[type="submit"]:hover {
   background: #4caf50;
   color: #fff;
   border-color: #4caf50;
 }
+
 .detayli-adres-form button[type="button"] {
   margin-left: 12px;
   padding: 10px 24px;
@@ -293,6 +334,7 @@
   cursor: pointer;
   transition: background 0.2s;
 }
+
 @media (max-width: 700px) {
   .detayli-adres-form {
     padding: 18px 4px;
@@ -312,23 +354,27 @@
   position: relative;
   list-style: none;
 }
+
 .adres-kart-baslik {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
 }
+
 .adres-baslik {
   font-size: 20px;
   font-weight: bold;
   color: #222;
   letter-spacing: 0.5px;
 }
+
 .adres-kart-btnlar {
   display: flex;
   gap: 8px;
   margin-left: auto; /* Sağa hizalama için */
 }
+
 .adres-duzenle-btn {
   background: #eee;
   color: #222;
@@ -340,11 +386,13 @@
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .adres-duzenle-btn:hover {
   background: #4caf50;
   color: #fff;
   border-color: #4caf50;
 }
+
 .adres-sil-btn {
   background: #fff;
   color: #e53935;
@@ -360,10 +408,12 @@
   justify-content: center;
   transition: background 0.2s, color 0.2s;
 }
+
 .adres-sil-btn:hover {
   background: #e53935;
   color: #fff;
 }
+
 .adres-kart-detay {
   font-size: 15px;
   color: #444;
@@ -465,4 +515,97 @@
   color: #d32f2f;
   font-size: 14px;
   margin-top: -8px;
+}
+
+.account-form {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-group input:disabled,
+.form-group textarea:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.edit-button,
+.save-button,
+.cancel-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.edit-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.save-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.cancel-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+
+.save-button:hover {
+  background-color: #218838;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
 } 

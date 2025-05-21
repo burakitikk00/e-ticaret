@@ -1,9 +1,9 @@
-.siparisler-container {
+.dashboard-siparisler-container {
     padding: 30px;
     background: #f7f9fa;
     }
   
-  .siparisler-table {
+  .dashboard-siparisler-table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
@@ -11,26 +11,26 @@
     overflow: hidden;
   }
   
-  .siparisler-table th, .siparisler-table td {
+  .dashboard-siparisler-table th, .dashboard-siparisler-table td {
     padding: 16px;
     text-align: left;
     color: #7b8a99;
   }
   
-  .siparis-row.acik {
+  .dashboard-siparis-row.acik {
     background: #d6fcf7;
   }
   
-  .siparis-row:hover {
+  .dashboard-siparis-row:hover {
     background: #eafaf7;
   }
   
-  .dropdown {
+  .dashboard-dropdown {
     position: relative;
     display: inline-block;
   }
   
-  .islemler-btn {
+  .dashboard-islemler-btn {
     background: #00e6c7;
     color: #fff;
     border: none;
@@ -40,7 +40,7 @@
     font-weight: bold;
   }
   
-  .dropdown-content {
+  .dashboard-dropdown-content {
     display: none;
     position: absolute;
     background: #fff;
@@ -51,33 +51,33 @@
     margin-top: 8px;
   }
   
-  .dropdown-content.acik {
+  .dashboard-dropdown-content.acik {
     display: block;
   }
   
-  .dropdown-item {
+  .dashboard-dropdown-item {
     padding: 12px 18px;
     cursor: pointer;
     color: #7b8a99;
     transition: background 0.2s;
   }
   
-  .dropdown-item:hover {
+  .dashboard-dropdown-item:hover {
     background: #eafaf7;
     color: #00bfae;
   }
   
-  .siparis-detay-row td {
+  .dashboard-siparis-detay-row td {
     background: #f7f9fa;
     border-top: 1px solid #e0e0e0;
   }
   
-  .siparis-detay {
+  .dashboard-siparis-detay {
     padding: 16px 0;
     color: #7b8a99;
   }
   
-  .adres-modal {
+  .dashboard-adres-modal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.2);
@@ -87,7 +87,7 @@
     z-index: 1000;
   }
   
-  .adres-modal-icerik {
+  .dashboard-adres-modal-icerik {
     background: #fff;
     padding: 32px;
     border-radius: 10px;
@@ -96,4 +96,36 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }  /* Sipariş detay sekmeleri için stil */
+  .dashboard-siparis-sekmeler {
+    display: flex;
+    gap: 16px;
+    margin: 24px 0 16px 0;
+  }  .dashboard-siparis-sekmeler button {
+    background: #f5f5f5;
+    border: none;
+    padding: 8px 24px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 6px 6px 0 0;
+  }  .dashboard-siparis-sekmeler .aktif {
+    background: #00e6c3;
+    color: #222;
+  }  .dashboard-siparis-sekme-icerik {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 24px;
+    border-radius: 0 6px 6px 6px;
   }
+  .dashboard-siparis-detay-sayfa {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #f9f9f9;
+    border-radius: 12px;
+    padding: 32px 24px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+
+
+
+

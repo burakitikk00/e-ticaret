@@ -97,14 +97,7 @@
     margin-right: 0;
     width: 100%;
   }
-  .sidebar {
-    position: static !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    height: auto !important;
-    z-index: 1;
-  }
+ 
   .dashboard-layout-content {
     margin-left: 0 !important;
     width: 100% !important;
