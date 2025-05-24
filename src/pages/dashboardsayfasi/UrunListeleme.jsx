@@ -16,7 +16,6 @@ const kategoriler = [
   'Makyaj Çantaları',
   'Spor Ayakkabı',
   'Abiye Çantalar',
-
 ];
 
 const opsiyonlar = [

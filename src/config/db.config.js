@@ -1,5 +1,5 @@
 // MSSQL veritabanı bağlantı yapılandırması
-const sql = require('mssql');
+import sql from 'mssql';
 
 const dbConfig = {
     server: 'DESKTOP-8IUA2EP', // Sunucu adınız
@@ -27,4 +27,4 @@ async function connectDB() {
     }
 }
 
-module.exports = { connectDB, sql, dbConfig };
+export { connectDB, sql, dbConfig };

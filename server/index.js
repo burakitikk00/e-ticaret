@@ -1,8 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const { connectDB, sql } = require('./config/db');
+const { config, sql, testConnection } = require('./config/db.config');
 const { adminLogin, changePassword } = require('./controllers/authController');
 const authMiddleware = require('./middleware/auth');
+const variationRoutes = require('./routes/variationRoutes');
 
 const app = express();
 
@@ -10,11 +11,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Hata yakalama middleware'i
+app.use((err, req, res, next) => {
+    console.error('Uygulama hatası:', err);
+    res.status(500).json({
+        success: false,
+        message: 'Sunucu hatası: ' + err.message
+    });
+});
+
 // Test endpoint'i
 app.get('/api/test', async (req, res) => {
     try {
         // Tüm kullanıcıları getir
-        const result = await sql.query`SELECT * FROM birincilkullanici.Users`;
+        const result = await sql.query`SELECT * FROM dbo.Users`;
         console.log('Veritabanı sonucu:', result.recordset);
         
         res.json({
@@ -35,18 +45,38 @@ app.get('/api/test', async (req, res) => {
 app.post('/api/auth/admin-login', adminLogin);
 app.post('/api/auth/change-password', authMiddleware, changePassword);
 
+// Varyasyon rotaları
+app.use('/api/variations', variationRoutes);
+
 // Server başlatma
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
     try {
-        await connectDB();
+        console.log('Veritabanına bağlanılıyor...');
+        const isConnected = await testConnection();
+        if (!isConnected) {
+            throw new Error('Veritabanı bağlantısı başarısız');
+        }
+        
         app.listen(PORT, () => {
             console.log(`Server ${PORT} portunda çalışıyor`);
         });
     } catch (error) {
         console.error('Server başlatma hatası:', error);
+        process.exit(1);
     }
 };
+
+// İşlenmeyen hataları yakala
+process.on('unhandledRejection', (err) => {
+    console.error('İşlenmeyen Promise reddi:', err);
+    process.exit(1);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('Yakalanmamış hata:', err);
+    process.exit(1);
+});
 
 startServer(); 

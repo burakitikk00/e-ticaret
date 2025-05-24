@@ -1,13 +1,18 @@
-const express = require('express');
-const cors = require('cors');
-const { connectDB } = require('./config/db.config');
-const varyasyonRoutes = require('./routes/varyasyonRoutes');
+import express from 'express';
+import cors from 'cors';
+import { connectDB } from './config/db.config.js';
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 // Veritabanı bağlantısı
 connectDB()
@@ -19,12 +24,15 @@ connectDB()
     console.error('MS SQL Server bağlantı hatası:', err);
   });
 
-// Routes
-app.use('/api/varyasyonlar', varyasyonRoutes);
+// 404 handler
+app.use((req, res) => {
+  console.log('404 Not Found:', req.method, req.url);
+  res.status(404).json({ message: 'Endpoint bulunamadı' });
+});
 
 // Hata yakalama middleware'i
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Hata:', err.stack);
   res.status(500).json({ message: 'Bir hata oluştu!', error: err.message });
 });
 
