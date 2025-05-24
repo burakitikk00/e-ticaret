@@ -1,18 +1,18 @@
 // MSSQL veritabanı bağlantı yapılandırması
-import sql from 'mssql';
+const sql = require('mssql');
 
 const dbConfig = {
     server: 'DESKTOP-8IUA2EP', // Sunucu adınız
     database: 'DBLinaButik',    // Veritabanı adınız
-    user: 'birincilkullanici',  // SQL Server'da oluşturduğunuz kullanıcı adı
-    password: '58500', // Oluşturduğunuz şifre
+    user: 'LinaButik',  // SQL Server'da oluşturduğunuz kullanıcı adı
+    password: 'adminlina', // Oluşturduğunuz şifre
     options: {
         encrypt: true, // Encryption mandatory ise true
         trustServerCertificate: true // Sertifika zorunluysa true
     }
 };
 
-export async function connectDB() {
+async function connectDB() {
     try {
         console.log('Bağlantı deneniyor...', dbConfig);
         const pool = await sql.connect(dbConfig);
@@ -27,4 +27,4 @@ export async function connectDB() {
     }
 }
 
-export { sql, dbConfig };
+module.exports = { connectDB, sql, dbConfig };

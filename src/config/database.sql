@@ -74,6 +74,7 @@ CREATE TABLE ProductVariations (
     StockQuantity INT NOT NULL DEFAULT 0,
     Price DECIMAL(10,2), -- Varyasyon özel fiyatı (opsiyonel)
     SKU NVARCHAR(50), -- Stok kodu
+    Description NVARCHAR(500),
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
@@ -87,6 +88,7 @@ CREATE TABLE ProductCombinations (
     StockQuantity INT NOT NULL DEFAULT 0,
     Price DECIMAL(10,2), -- Kombinasyon özel fiyatı
     SKU NVARCHAR(50), -- Stok kodu
+    Description NVARCHAR(500),
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
@@ -132,6 +134,7 @@ CREATE TABLE OrderDetails (
     TotalPrice DECIMAL(10,2) NOT NULL,
     ProductImage NVARCHAR(255), -- Ürün resmi
     ProductOptions NVARCHAR(MAX), -- Ürün opsiyonları (JSON formatında)
+    SelectedVariationOptions NVARCHAR(MAX), -- JSON formatında seçilen varyasyon seçenekleri
     CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
@@ -305,4 +308,17 @@ ADD CouponID INT,
     ShippingCompanyID INT,
     TrackingNumber NVARCHAR(100),
     FOREIGN KEY (CouponID) REFERENCES Coupons(CouponID),
-    FOREIGN KEY (ShippingCompanyID) REFERENCES ShippingCompanies(CompanyID); 
+    FOREIGN KEY (ShippingCompanyID) REFERENCES ShippingCompanies(CompanyID);
+
+-- Varyasyon Seçenekleri tablosu
+CREATE TABLE VariationOptions (
+    OptionID INT IDENTITY(1,1) PRIMARY KEY,
+    VariationID INT,
+    OptionValue NVARCHAR(100) NOT NULL, -- Örn: Kırmızı, Mavi, XL, L
+    StockQuantity INT NOT NULL DEFAULT 0,
+    Price DECIMAL(10,2), -- Seçenek özel fiyatı (opsiyonel)
+    SKU NVARCHAR(50), -- Stok kodu
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (VariationID) REFERENCES ProductVariations(VariationID)
+); 

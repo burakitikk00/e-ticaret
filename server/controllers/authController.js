@@ -6,18 +6,29 @@ const jwt = require('jsonwebtoken');
 const adminLogin = async (req, res) => {
     try {
         const { username, password } = req.body;
-        console.log('Giriş denemesi:', { username }); // Şifreyi loglamıyoruz
+        console.log('Giriş denemesi başladı:', { username });
+
+        // Veritabanı bağlantısını kontrol et
+        if (!sql) {
+            console.error('Veritabanı bağlantısı bulunamadı');
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Veritabanı bağlantı hatası' 
+            });
+        }
 
         // Kullanıcıyı veritabanında ara
+        console.log('SQL sorgusu çalıştırılıyor...');
         const result = await sql.query`
             SELECT UserID, Username, Password, UserType 
-            FROM birincilkullanici.Users 
+            FROM dbo.Users 
             WHERE Username = ${username} AND UserType = 'admin'
         `;
 
         console.log('Veritabanı sonucu:', result.recordset);
 
         if (result.recordset.length === 0) {
+            console.log('Kullanıcı bulunamadı');
             return res.status(401).json({ 
                 success: false, 
                 message: 'Kullanıcı adı veya şifre hatalı' 
@@ -25,19 +36,31 @@ const adminLogin = async (req, res) => {
         }
 
         const user = result.recordset[0];
+        console.log('Kullanıcı bulundu:', { userId: user.UserID, userType: user.UserType });
 
         // Şifre kontrolü
         let isPasswordValid = false;
         
-        // Eğer veritabanındaki şifre hash'lenmemişse, gelen şifreyi direkt karşılaştır
-        if (!user.Password.startsWith('$2')) {
-            isPasswordValid = (user.Password === password);
-        } else {
-            // Veritabanındaki şifre hash'lenmiş, bcrypt ile karşılaştır
-            isPasswordValid = await bcrypt.compare(password, user.Password);
+        try {
+            // Eğer veritabanındaki şifre hash'lenmemişse, gelen şifreyi direkt karşılaştır
+            if (!user.Password.startsWith('$2')) {
+                isPasswordValid = (user.Password === password);
+                console.log('Hash\'lenmemiş şifre kontrolü yapıldı');
+            } else {
+                // Veritabanındaki şifre hash'lenmiş, bcrypt ile karşılaştır
+                isPasswordValid = await bcrypt.compare(password, user.Password);
+                console.log('Hash\'lenmiş şifre kontrolü yapıldı');
+            }
+        } catch (passwordError) {
+            console.error('Şifre kontrolü hatası:', passwordError);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Şifre doğrulama hatası' 
+            });
         }
 
         if (!isPasswordValid) {
+            console.log('Şifre doğrulaması başarısız');
             return res.status(401).json({ 
                 success: false, 
                 message: 'Kullanıcı adı veya şifre hatalı' 
@@ -45,11 +68,16 @@ const adminLogin = async (req, res) => {
         }
 
         // JWT token oluştur
+        const jwtSecret = process.env.JWT_SECRET || 'gizli-anahtar';
+        console.log('JWT token oluşturuluyor...');
+        
         const token = jwt.sign(
             { userId: user.UserID, userType: user.UserType },
-            process.env.JWT_SECRET || 'gizli-anahtar',
+            jwtSecret,
             { expiresIn: '24h' }
         );
+
+        console.log('Giriş başarılı, token oluşturuldu');
 
         // Başarılı yanıt
         res.json({
@@ -63,10 +91,14 @@ const adminLogin = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Giriş hatası:', error);
+        console.error('Giriş hatası detayları:', {
+            message: error.message,
+            stack: error.stack,
+            code: error.code
+        });
         res.status(500).json({ 
             success: false, 
-            message: 'Sunucu hatası' 
+            message: 'Sunucu hatası: ' + error.message 
         });
     }
 };
@@ -89,7 +121,7 @@ const changePassword = async (req, res) => {
         // Kullanıcıyı veritabanında ara
         const result = await sql.query`
             SELECT UserID, Password 
-            FROM birincilkullanici.Users 
+            FROM dbo.Users 
             WHERE UserID = ${userId}
         `;
 
@@ -127,7 +159,7 @@ const changePassword = async (req, res) => {
 
         // Şifreyi güncelle
         await sql.query`
-            UPDATE birincilkullanici.Users 
+            UPDATE dbo.Users 
             SET Password = ${hashedPassword}
             WHERE UserID = ${userId}
         `;

@@ -5,8 +5,8 @@ require('dotenv').config();
 const dbConfig = {
     server: 'DESKTOP-8IUA2EP',
     database: 'DBLinaButik',
-    user: 'birincilkullanici',
-    password: '58500',
+    user: 'LinaButik',
+    password: 'adminlina',
     options: {
         encrypt: true,
         trustServerCertificate: true,
