@@ -22,8 +22,24 @@ const opsiyonlar = [
   { ad: '', fiyat: '' },
 ];
 
+// Base64 data URL'yi Blob nesnesine dönüştüren yardımcı fonksiyon
+const dataURLtoBlob = (dataurl) => {
+  if (!dataurl) return null;
+  const arr = dataurl.split(',');
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : '';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], {type:mime});
+};
+
 // API base URL'i
 const API_BASE_URL = 'http://localhost:5000/api';
+const SERVER_BASE_URL = 'http://localhost:5000'; // Sunucu base URL'i
 
 const UrunListeleme = () => {
   // Form state'leri
@@ -172,25 +188,129 @@ const UrunListeleme = () => {
   };
 
   // Görsel silme fonksiyonu
-  const handleGorselSil = (index) => {
-    setGorseller(prev => prev.filter((_, i) => i !== index));
+  const handleGorselSil = async (index) => {
+    const gorselToDelete = gorseller[index];
+
+    // Kullanıcıdan onay al
+    if (!window.confirm(`'${gorselToDelete.name}' görselini silmek istediğinizden emin misiniz?`)) {
+      return; // Kullanıcı vazgeçti
+    }
+
+    try {
+      // Backend API'sine silme isteği gönder
+      // Dosya adı URL'den çıkarılabilir veya state'de saklanabilir. Upload response'una filename ekledik.
+      const filename = gorselToDelete.filename; // Upload sırasında kaydettiğimiz dosya adını kullan
+      
+      if (!filename) {
+          console.error('Silinecek görselin dosya adı bulunamadı');
+          alert('Görsel silinirken bir hata oluştu: Dosya adı eksik.');
+          // Frontend state'inden yine de kaldıralım mı? Şimdilik kaldırmayalım.
+          return;
+      }
+
+      console.log(`Görsel backend'den siliniyor: ${filename}`);
+
+      const response = await fetch(`${API_BASE_URL}/upload/image/${filename}`, {
+        method: 'DELETE',
+        // credentials: 'include' // Eğer backend session/cookie kullanıyorsa dahil edilebilir
+      });
+
+      console.log('Delete API yanıtı:', response);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Delete API yanıt hatası:', errorData);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
+      }
+
+      const result = await response.json();
+      console.log('Delete API başarılı yanıt:', result);
+
+      // Backend'den başarı yanıtı gelince frontend state'inden görseli kaldır
+      setGorseller(prev => prev.filter((_, i) => i !== index));
+
+      alert('Görsel başarıyla silindi.');
+
+    } catch (error) {
+      console.error('Görsel silinirken hata:', error);
+      alert(`Görsel silinirken bir hata oluştu: ${error.message}`);
+    }
   };
 
   // Modalda tamam'a basınca, kırpılmış görseli yükle
   const handleGorselTamam = async () => {
-    setGorselYukleniyor(true);
-    // Kırpılmış görseli oluştur
-    const croppedImg = await getCroppedImg(gorselUrl, croppedAreaPixels, rotate);
-    setTimeout(() => {
+    if (!croppedAreaPixels || !seciliGorsel) {
+      alert('Lütfen bir görsel seçin ve kırpma alanını belirleyin.');
       setGorselYukleniyor(false);
-      setGorselModalAcik(false);
+      return;
+    }
+
+    setGorselYukleniyor(true);
+    
+    try {
+      const croppedImageResult = await getCroppedImg(gorselUrl, croppedAreaPixels, rotate);
+      let croppedImageBlob;
+
+      if (!(croppedImageResult instanceof Blob)) {
+          croppedImageBlob = dataURLtoBlob(croppedImageResult);
+      } else {
+          croppedImageBlob = croppedImageResult;
+      }
+
+      if (!croppedImageBlob) {
+          throw new Error(`Görsel Blob'a dönüştürülemedi.`);
+      }
+
+      const formData = new FormData();
+      formData.append('image', croppedImageBlob, seciliGorsel.name);
+
+      console.log(`Görsel backend'e yükleniyor...`);
+      
+      const response = await fetch(`${API_BASE_URL}/upload/image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      console.log('Upload API yanıtı:', response);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Upload API yanıt hatası:', errorData);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
+      }
+
+      const result = await response.json();
+      console.log('Upload API başarılı yanıt:', result);
+
+      if (!result.imageUrl || !result.filename) { // filename kontrolünü de ekle
+         throw new Error(`API yanıtında görsel URL'si veya dosya adı bulunamadı`);
+      }
+
+      // Yüklenen görseli gorseller state'ine ekle
       setGorseller(prev => [
         ...prev,
-        { url: croppedImg, name: `Görsel #${prev.length + 1}` }
+        { 
+          url: `${SERVER_BASE_URL}${result.imageUrl}`, 
+          name: seciliGorsel.name || `Görsel #${prev.length + 1}`,
+          filename: result.filename // Dosya adını state'de sakla
+        }
       ]);
+
+      // Modal ve state'leri kapat ve sıfırla
+      setGorselModalAcik(false);
       setSeciliGorsel(null);
       setGorselUrl('');
-    }, 1000);
+      setZoom(1);
+      setRotate(0);
+      setCrop({ x: 0, y: 0 });
+      setCroppedAreaPixels(null);
+
+    } catch (error) {
+      console.error('Görsel yüklenirken hata:', error);
+      alert(`Görsel yüklenirken bir hata oluştu: ${error.message}`);
+    } finally {
+      setGorselYukleniyor(false);
+    }
   };
 
   // Modalda vazgeç'e basınca
@@ -928,7 +1048,7 @@ const UrunListeleme = () => {
             <button
               type="button"
               className="dashboard-button"
-              style={{ padding: '6px 16px', fontSize: 13, background: 'rgb(255 0 141);', color: 'white', border: '1px solid #ccc', marginTop: 4 }}
+              style={{ padding: '6px 16px', fontSize: 13, background: 'rgb(255 0 141)', color: 'white', border: '1px solid #ccc', marginTop: 4 }}
               onClick={handleOpsiyonEkle}
             >
               + Opsiyon Ekle

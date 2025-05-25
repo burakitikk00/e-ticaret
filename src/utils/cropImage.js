@@ -29,8 +29,18 @@ export default function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
         pixelCrop.height
       );
 
-      // Kırpılmış görüntüyü döndür
-      resolve(canvas.toDataURL('image/jpeg'));
+      // Canvas'ı Blob'a dönüştür
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob); // Blob'u döndür
+          } else {
+            reject(new Error('Canvas Blob\'a dönüştürülemedi'));
+          }
+        },
+        'image/jpeg', // JPEG formatında
+        0.95 // Kalite (0-1 arası)
+      );
     };
     image.onerror = (err) => reject(err);
   });
