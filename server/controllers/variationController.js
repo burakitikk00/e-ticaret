@@ -20,10 +20,15 @@ exports.getAllVariations = async (req, res) => {
             secenekler: v.secenekler ? v.secenekler.split(', ') : []
         }));
         
+        console.log('Varyasyonlar:', variations); // Debug için log ekle
         res.json(variations);
     } catch (error) {
         console.error('Varyasyonlar getirilirken hata:', error);
-        res.status(500).json({ message: 'Sunucu hatası' });
+        res.status(500).json({ 
+            message: 'Sunucu hatası',
+            error: error.message,
+            stack: error.stack
+        });
     }
 };
 
@@ -117,8 +122,7 @@ exports.updateVariation = async (req, res) => {
             // Güncellenen varyasyonu getir
             const updatedVariation = await pool.request()
                 .input('variationId', sql.Int, variationId)
-                .query(`
-                    SELECT v.VariationID, v.VariationName as ad,
+                .query(`                    SELECT v.VariationID, v.VariationName as ad,
                            STRING_AGG(vo.OptionName, ', ') as secenekler
                     FROM dbo.Variations v
                     LEFT JOIN dbo.VariationOptions vo ON v.VariationID = vo.VariationID
@@ -171,5 +175,92 @@ exports.deleteVariation = async (req, res) => {
     } catch (err) {
         console.error('Varyasyon silinirken hata:', err);
         res.status(500).json({ message: err.message });
+    }
+};
+
+// Ürün varyasyon kombinasyonlarını getir
+exports.getProductVariationCombinations = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('productId', sql.Int, productId)
+            .query(`
+                SELECT pvc.*, 
+                       v1.VariationName as variation1Name,
+                       v2.VariationName as variation2Name,
+                       vo1.OptionName as option1Name,
+                       vo2.OptionName as option2Name
+                FROM dbo.ProductVariationCombinations pvc
+                LEFT JOIN dbo.Variations v1 ON pvc.Variation1ID = v1.VariationID
+                LEFT JOIN dbo.Variations v2 ON pvc.Variation2ID = v2.VariationID
+                LEFT JOIN dbo.VariationOptions vo1 ON pvc.Option1ID = vo1.OptionID
+                LEFT JOIN dbo.VariationOptions vo2 ON pvc.Option2ID = vo2.OptionID
+                WHERE pvc.ProductID = @productId
+            `);
+        
+        res.json(result.recordset);
+    } catch (error) {
+        console.error('Varyasyon kombinasyonları getirilirken hata:', error);
+        res.status(500).json({ message: 'Sunucu hatası' });
+    }
+};
+
+// Ürün varyasyon kombinasyonu güncelle
+exports.updateProductVariationCombination = async (req, res) => {
+    try {
+        const { combinationId } = req.params;
+        const { imageUrl, price, stock } = req.body;
+        
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('combinationId', sql.Int, combinationId)
+            .input('imageUrl', sql.NVarChar, imageUrl)
+            .input('price', sql.Decimal(10, 2), price)
+            .input('stock', sql.Int, stock)
+            .query(`
+                UPDATE dbo.ProductVariationCombinations 
+                SET ImageUrl = @imageUrl,
+                    Price = @price,
+                    Stock = @stock
+                WHERE CombinationID = @combinationId
+                
+                SELECT * FROM dbo.ProductVariationCombinations 
+                WHERE CombinationID = @combinationId
+            `);
+        
+        res.json(result.recordset[0]);
+    } catch (error) {
+        console.error('Varyasyon kombinasyonu güncellenirken hata:', error);
+        res.status(500).json({ message: 'Sunucu hatası' });
+    }
+};
+
+// Ürün varyasyon kombinasyonu ekle
+exports.addProductVariationCombination = async (req, res) => {
+    try {
+        const { productId, variation1Id, variation2Id, option1Id, option2Id, imageUrl, price, stock } = req.body;
+        
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('productId', sql.Int, productId)
+            .input('variation1Id', sql.Int, variation1Id)
+            .input('variation2Id', sql.Int, variation2Id)
+            .input('option1Id', sql.Int, option1Id)
+            .input('option2Id', sql.Int, option2Id)
+            .input('imageUrl', sql.NVarChar, imageUrl)
+            .input('price', sql.Decimal(10, 2), price)
+            .input('stock', sql.Int, stock)
+            .query(`
+                INSERT INTO dbo.ProductVariationCombinations 
+                (ProductID, Variation1ID, Variation2ID, Option1ID, Option2ID, ImageUrl, Price, Stock)
+                OUTPUT INSERTED.*
+                VALUES (@productId, @variation1Id, @variation2Id, @option1Id, @option2Id, @imageUrl, @price, @stock)
+            `);
+        
+        res.json(result.recordset[0]);
+    } catch (error) {
+        console.error('Varyasyon kombinasyonu eklenirken hata:', error);
+        res.status(500).json({ message: 'Sunucu hatası' });
     }
 };

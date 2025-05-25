@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import '../../css/dashboard/VaryasyonAyarlar.css';
+
+// API base URL
+const API_URL = 'http://localhost:5000/api';
 
 // Başlangıçta örnek varyasyonlar (ileride API'den çekilecek)
 const ornekVaryasyonlar = [
@@ -19,7 +23,7 @@ const ornekVaryasyonlar = [
 
 const VaryasyonAyarlar = () => {
   // Varyasyonlar state'i
-  const [varyasyonlar, setVaryasyonlar] = useState(ornekVaryasyonlar);
+  const [varyasyonlar, setVaryasyonlar] = useState([]);
   // Yeni varyasyon adı için state
   const [yeniVaryasyon, setYeniVaryasyon] = useState('');
   // Düzenlenen varyasyonun index'i ve adı
@@ -29,7 +33,7 @@ const VaryasyonAyarlar = () => {
   // Modal için state
   const [modalAcik, setModalAcik] = useState(false);
   const [modalVaryasyonIndex, setModalVaryasyonIndex] = useState(null);
-  const [modalVaryasyon, setModalVaryasyon] = useState(null); // Modalda düzenlenen varyasyonun kopyası
+  const [modalVaryasyon, setModalVaryasyon] = useState(null);
 
   // Modal içi seçenek ekleme/düzenleme için state
   const [yeniSecenek, setYeniSecenek] = useState('');
@@ -38,41 +42,70 @@ const VaryasyonAyarlar = () => {
 
   // Modal dışında tıklanınca kapansın diye ref
   const modalRef = useRef();
-  useEffect(() => {
-    if (!modalAcik) return;
-    const handleClick = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
-        setModalAcik(false);
-        setModalVaryasyon(null);
-        setModalVaryasyonIndex(null);
-        setDuzenlenenSecenekIndex(null);
-        setDuzenlenenSecenek('');
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [modalAcik]);
 
-  // Varyasyonlar değiştiğinde localStorage'a kaydet
+  // Sayfa yüklendiğinde varyasyonları getir
   useEffect(() => {
-    localStorage.setItem('varyasyonlar', JSON.stringify(varyasyonlar));
-  }, [varyasyonlar]);
+    fetchVaryasyonlar();
+  }, []);
+
+  // Varyasyonları getir
+  const fetchVaryasyonlar = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/variations`);
+      setVaryasyonlar(response.data);
+    } catch (error) {
+      console.error('Varyasyonlar getirilirken hata:', error);
+      // Hata durumunda boş array ile başlat
+      setVaryasyonlar([]);
+    }
+  };
 
   // Varyasyon ekle
-  const handleVaryasyonEkle = () => {
+  const handleVaryasyonEkle = async () => {
     if (!yeniVaryasyon.trim()) return;
-    setVaryasyonlar([...varyasyonlar, { ad: yeniVaryasyon, secenekler: [] }]);
-    setYeniVaryasyon('');
+    try {
+      const response = await axios.post(`${API_URL}/variations`, {
+        variationName: yeniVaryasyon
+      });
+      setVaryasyonlar([...varyasyonlar, response.data]);
+      setYeniVaryasyon('');
+    } catch (error) {
+      console.error('Varyasyon eklenirken hata:', error);
+      alert('Varyasyon eklenirken bir hata oluştu!');
+    }
   };
 
   // Varyasyon sil
-  const handleVaryasyonSil = (index) => {
-    setVaryasyonlar(varyasyonlar.filter((_, i) => i !== index));
-    // Eğer modal açıksa ve silinen varyasyon ise modalı kapat
-    if (modalVaryasyonIndex === index) {
-      setModalAcik(false);
-      setModalVaryasyon(null);
-      setModalVaryasyonIndex(null);
+  const handleVaryasyonSil = async (index) => {
+    try {
+      await axios.delete(`${API_URL}/variations/${varyasyonlar[index].VariationID}`);
+      setVaryasyonlar(varyasyonlar.filter((_, i) => i !== index));
+      if (modalVaryasyonIndex === index) {
+        setModalAcik(false);
+        setModalVaryasyon(null);
+        setModalVaryasyonIndex(null);
+      }
+    } catch (error) {
+      console.error('Varyasyon silinirken hata:', error);
+      alert('Varyasyon silinirken bir hata oluştu!');
+    }
+  };
+
+  // Varyasyon adını kaydet
+  const handleVaryasyonKaydet = async (index) => {
+    try {
+      const response = await axios.put(`${API_URL}/variations/${varyasyonlar[index].VariationID}`, {
+        ad: duzenlenenVaryasyonAdi,
+        secenekler: varyasyonlar[index].secenekler
+      });
+      const yeni = [...varyasyonlar];
+      yeni[index] = response.data;
+      setVaryasyonlar(yeni);
+      setDuzenlenenVaryasyon(null);
+      setDuzenlenenVaryasyonAdi('');
+    } catch (error) {
+      console.error('Varyasyon güncellenirken hata:', error);
+      alert('Varyasyon güncellenirken bir hata oluştu!');
     }
   };
 
@@ -80,15 +113,6 @@ const VaryasyonAyarlar = () => {
   const handleVaryasyonDuzenle = (index) => {
     setDuzenlenenVaryasyon(index);
     setDuzenlenenVaryasyonAdi(varyasyonlar[index].ad);
-  };
-
-  // Varyasyon adını kaydet
-  const handleVaryasyonKaydet = (index) => {
-    const yeni = [...varyasyonlar];
-    yeni[index].ad = duzenlenenVaryasyonAdi;
-    setVaryasyonlar(yeni);
-    setDuzenlenenVaryasyon(null);
-    setDuzenlenenVaryasyonAdi('');
   };
 
   // Varyasyon kutusuna tıklayınca modalı aç
@@ -129,13 +153,19 @@ const VaryasyonAyarlar = () => {
   };
 
   // Modalda değişiklikleri kaydet
-  const handleModalKaydet = () => {
-    const yeni = [...varyasyonlar];
-    yeni[modalVaryasyonIndex] = modalVaryasyon;
-    setVaryasyonlar(yeni);
-    setModalAcik(false);
-    setModalVaryasyon(null);
-    setModalVaryasyonIndex(null);
+  const handleModalKaydet = async () => {
+    try {
+      const response = await axios.put(`${API_URL}/variations/${varyasyonlar[modalVaryasyonIndex].VariationID}`, modalVaryasyon);
+      const yeni = [...varyasyonlar];
+      yeni[modalVaryasyonIndex] = response.data;
+      setVaryasyonlar(yeni);
+      setModalAcik(false);
+      setModalVaryasyon(null);
+      setModalVaryasyonIndex(null);
+    } catch (error) {
+      console.error('Varyasyon güncellenirken hata:', error);
+      alert('Varyasyon güncellenirken bir hata oluştu!');
+    }
   };
 
   // Modalı iptal et

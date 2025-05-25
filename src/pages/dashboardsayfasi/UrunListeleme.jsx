@@ -22,27 +22,8 @@ const opsiyonlar = [
   { ad: '', fiyat: '' },
 ];
 
-// Varyasyonlar ve seçenekler localStorage'dan alınacak
-const getVaryasyonlarFromStorage = () => {
-  // Eğer localStorage'da yoksa örnek veri ile başlat
-  const data = localStorage.getItem('varyasyonlar');
-  if (data) return JSON.parse(data);
-  // İlk kullanımda örnek veri ile başlat
-  const ornek = [
-    { ad: 'Renk', secenekler: ['Kırmızı Renk', 'Beyaz Renk', 'Siyah Renk', 'Krem renk', 'Bej Renk', 'Pembe Renk'] },
-    { ad: 'Numara Seç', secenekler: ['36', '37', '38', '39', '40'] },
-    { ad: 'Askı Renkleri', secenekler: ['Altın', 'Gümüş', 'Siyah'] },
-  ];
-  localStorage.setItem('varyasyonlar', JSON.stringify(ornek));
-  return ornek;
-};
-
-const varyasyonlarStorage = getVaryasyonlarFromStorage();
-const varyasyonSecenekleri = varyasyonlarStorage.map(v => v.ad);
-const varyasyonDegerleri = {};
-varyasyonlarStorage.forEach(v => {
-  varyasyonDegerleri[v.ad] = v.secenekler;
-});
+// API base URL'i
+const API_BASE_URL = 'http://localhost:5000/api';
 
 const UrunListeleme = () => {
   // Form state'leri
@@ -56,7 +37,10 @@ const UrunListeleme = () => {
   // Kategori seçimi için state
   const [seciliKategoriler, setSeciliKategoriler] = useState([]);
 
-  // Varyasyonlar için state
+  // Varyasyonlar için state'ler
+  const [varyasyonlar, setVaryasyonlar] = useState([]); // API'den gelen varyasyonlar
+  const [varyasyonSecenekleri, setVaryasyonSecenekleri] = useState([]); // Varyasyon adları
+  const [varyasyonDegerleri, setVaryasyonDegerleri] = useState({}); // Varyasyon seçenekleri
   const [varyasyon1, setVaryasyon1] = useState('');
   const [varyasyon2, setVaryasyon2] = useState('');
   const [varyasyonKombinasyonlari, setVaryasyonKombinasyonlari] = useState([]); // Her kombinasyon için resim, fiyat, stok
@@ -116,54 +100,6 @@ const UrunListeleme = () => {
         ? prev.filter(k => k !== kategori)
         : [...prev, kategori]
     );
-  };
-
-  // Varyasyon seçimi değiştiğinde çalışır
-  const handleVaryasyonChange = (index, value) => {
-    if (index === 1) {
-      setVaryasyon1(value);
-      if (value && varyasyon2) {
-        // Varyasyon seçildiğinde stok adedini sıfırla
-        setStokAdedi('');
-      }
-    }
-    if (index === 2) {
-      setVaryasyon2(value);
-      if (value && varyasyon1) {
-        // Varyasyon seçildiğinde stok adedini sıfırla
-        setStokAdedi('');
-      }
-    }
-    // Varyasyonlar değişince kombinasyonları sıfırla
-    setVaryasyonKombinasyonlari([]);
-  };
-
-  // Kombinasyonları dinamik oluştur
-  const handleKombinasyonOlustur = () => {
-    if (!varyasyon1 || !varyasyon2) return;
-    const v1Degerler = varyasyonDegerleri[varyasyon1] || [];
-    const v2Degerler = varyasyonDegerleri[varyasyon2] || [];
-    const kombinasyonlar = [];
-    v1Degerler.forEach(v1 => {
-      v2Degerler.forEach(v2 => {
-        kombinasyonlar.push({
-          varyasyon: `${v1} / ${v2}`,
-          resim: null,
-          fiyat: '',
-          stok: '',
-        });
-      });
-    });
-    setVaryasyonKombinasyonlari(kombinasyonlar);
-  };
-
-  // Kombinasyon için resim, fiyat, stok güncelle
-  const handleKombinasyonUpdate = (index, alan, deger) => {
-    setVaryasyonKombinasyonlari(prev => {
-      const yeni = [...prev];
-      yeni[index][alan] = deger;
-      return yeni;
-    });
   };
 
   // Opsiyon ekle
@@ -375,6 +311,183 @@ const UrunListeleme = () => {
       }
     }
   }, []);
+
+  // Varyasyonları API'den getir
+  useEffect(() => {
+    const fetchVaryasyonlar = async () => {
+      try {
+        console.log('Varyasyonlar getiriliyor...');
+        const response = await fetch(`${API_BASE_URL}/variations`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('API yanıtı:', response);
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('API yanıt hatası:', errorData);
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
+        }
+
+        const data = await response.json();
+        console.log('Gelen varyasyonlar:', data);
+
+        if (!Array.isArray(data)) {
+          throw new Error('API geçersiz veri formatı döndürdü');
+        }
+
+        setVaryasyonlar(data);
+        
+        // Varyasyon adlarını ve seçeneklerini ayarla
+        const secenekler = data.map(v => v.ad);
+        setVaryasyonSecenekleri(secenekler);
+        
+        const degerler = {};
+        data.forEach(v => {
+          degerler[v.ad] = v.secenekler;
+        });
+        setVaryasyonDegerleri(degerler);
+      } catch (error) {
+        console.error('Varyasyonlar getirilirken hata:', error);
+        // Hata durumunda varsayılan varyasyonları kullan
+        const varsayilanVaryasyonlar = [
+          { ad: 'Beden', secenekler: ['S', 'M', 'L', 'XL'] },
+          { ad: 'Renk', secenekler: ['Siyah', 'Beyaz', 'Kırmızı', 'Mavi'] }
+        ];
+        setVaryasyonlar(varsayilanVaryasyonlar);
+        setVaryasyonSecenekleri(varsayilanVaryasyonlar.map(v => v.ad));
+        const degerler = {};
+        varsayilanVaryasyonlar.forEach(v => {
+          degerler[v.ad] = v.secenekler;
+        });
+        setVaryasyonDegerleri(degerler);
+        // Kullanıcıya bilgi ver
+        alert(`Varyasyonlar yüklenirken bir hata oluştu: ${error.message}. Varsayılan varyasyonlar kullanılıyor.`);
+      }
+    };
+    
+    // Backend sunucusunun çalışıp çalışmadığını kontrol et
+    const checkServer = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/test`);
+        if (response.ok) {
+          console.log('Backend sunucusu çalışıyor');
+          fetchVaryasyonlar();
+        } else {
+          const errorData = await response.text();
+          throw new Error(`Backend sunucusu yanıt vermiyor: ${errorData}`);
+        }
+      } catch (error) {
+        console.error('Backend sunucusu kontrolü başarısız:', error);
+        // Sunucu çalışmıyorsa varsayılan varyasyonları kullan
+        const varsayilanVaryasyonlar = [
+          { ad: 'Beden', secenekler: ['S', 'M', 'L', 'XL'] },
+          { ad: 'Renk', secenekler: ['Siyah', 'Beyaz', 'Kırmızı', 'Mavi'] }
+        ];
+        setVaryasyonlar(varsayilanVaryasyonlar);
+        setVaryasyonSecenekleri(varsayilanVaryasyonlar.map(v => v.ad));
+        const degerler = {};
+        varsayilanVaryasyonlar.forEach(v => {
+          degerler[v.ad] = v.secenekler;
+        });
+        setVaryasyonDegerleri(degerler);
+        alert(`Backend sunucusuna bağlanılamadı: ${error.message}. Varsayılan varyasyonlar kullanılıyor.`);
+      }
+    };
+
+    checkServer();
+  }, []);
+
+  // Varyasyon seçimi değiştiğinde çalışır
+  const handleVaryasyonChange = (index, value) => {
+    if (index === 1) {
+      setVaryasyon1(value);
+      if (value && varyasyon2) {
+        // Varyasyon seçildiğinde stok adedini sıfırla
+        setStokAdedi('');
+      }
+    }
+    if (index === 2) {
+      setVaryasyon2(value);
+      if (value && varyasyon1) {
+        // Varyasyon seçildiğinde stok adedini sıfırla
+        setStokAdedi('');
+      }
+    }
+    // Varyasyonlar değişince kombinasyonları sıfırla
+    setVaryasyonKombinasyonlari([]);
+  };
+
+  // Kombinasyonları dinamik oluştur
+  const handleKombinasyonOlustur = () => {
+    if (!varyasyon1 || !varyasyon2) return;
+    const v1Degerler = varyasyonDegerleri[varyasyon1] || [];
+    const v2Degerler = varyasyonDegerleri[varyasyon2] || [];
+    const kombinasyonlar = [];
+    v1Degerler.forEach(v1 => {
+      v2Degerler.forEach(v2 => {
+        kombinasyonlar.push({
+          varyasyon: `${v1} / ${v2}`,
+          resim: null,
+          fiyat: '',
+          stok: '',
+        });
+      });
+    });
+    setVaryasyonKombinasyonlari(kombinasyonlar);
+  };
+
+  // Kombinasyon güncelleme fonksiyonu
+  const handleKombinasyonUpdate = async (index, alan, deger) => {
+    const kombinasyon = varyasyonKombinasyonlari[index];
+    
+    // Önce state'i güncelle
+    setVaryasyonKombinasyonlari(prev => {
+      const yeni = [...prev];
+      yeni[index][alan] = deger;
+      return yeni;
+    });
+    
+    // Eğer kombinasyon ID'si varsa (yani veritabanında kayıtlıysa) API'yi güncelle
+    if (kombinasyon.combinationId) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/variations/combinations/${kombinasyon.combinationId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            // Eğer authentication gerekiyorsa token ekleyin
+            // 'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include', // Cookie'leri gönder
+          body: JSON.stringify({
+            imageUrl: kombinasyon.resim?.url,
+            price: kombinasyon.fiyat,
+            stock: kombinasyon.stok
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const updatedData = await response.json();
+        console.log('Kombinasyon güncellendi:', updatedData);
+      } catch (error) {
+        console.error('Kombinasyon güncellenirken hata:', error);
+        // Hata durumunda state'i geri al
+        setVaryasyonKombinasyonlari(prev => {
+          const yeni = [...prev];
+          yeni[index][alan] = kombinasyon[alan];
+          return yeni;
+        });
+        // Kullanıcıya hata mesajı göster
+        alert('Kombinasyon güncellenirken bir hata oluştu. Lütfen tekrar deneyin.');
+      }
+    }
+  };
 
   // Form gönderildiğinde
   const handleSubmit = () => {
