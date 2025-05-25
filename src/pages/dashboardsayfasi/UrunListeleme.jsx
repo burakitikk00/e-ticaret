@@ -609,8 +609,58 @@ const UrunListeleme = () => {
     }
   };
 
-  // Form gönderildiğinde
-  const handleSubmit = () => {
+  // Sayfa açıldığında localStorage'dan görselleri yükle (süre kontrolü ile)
+  useEffect(() => {
+    try {
+      const kayitli = localStorage.getItem('yuklenenGorseller');
+      if (kayitli) {
+        const kayitObj = JSON.parse(kayitli);
+        const now = Date.now();
+        const SURE_MS = 60 * 60 * 1000; // 1 saat
+        
+        // Timestamp kontrolü
+        if (now - kayitObj.timestamp < SURE_MS) {
+          // Görsel URL'lerinin geçerli olduğundan emin ol
+          const gecerliGorseller = kayitObj.data.filter(gorsel => 
+            gorsel && gorsel.url && gorsel.url.startsWith('http')
+          );
+          
+          if (gecerliGorseller.length > 0) {
+            setGorseller(gecerliGorseller);
+            console.log('Görseller localStorage\'dan yüklendi:', gecerliGorseller);
+          } else {
+            console.log('Geçerli görsel bulunamadı');
+            localStorage.removeItem('yuklenenGorseller');
+          }
+        } else {
+          console.log('Görsellerin süresi dolmuş');
+          localStorage.removeItem('yuklenenGorseller');
+        }
+      }
+    } catch (error) {
+      console.error('Görseller yüklenirken hata:', error);
+      localStorage.removeItem('yuklenenGorseller');
+    }
+  }, []);
+
+  // gorseller state'i değiştiğinde localStorage'a kaydet (timestamp ile)
+  useEffect(() => {
+    try {
+      if (gorseller && gorseller.length > 0) {
+        const kayit = {
+          data: gorseller,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('yuklenenGorseller', JSON.stringify(kayit));
+        console.log('Görseller localStorage\'a kaydedildi:', gorseller);
+      }
+    } catch (error) {
+      console.error('Görseller kaydedilirken hata:', error);
+    }
+  }, [gorseller]);
+
+  // Ürün kaydedilince localStorage'dan sil
+  const handleSubmit = async () => {
     if (duzenlemeModu) {
       // Düzenleme modunda güncelleme yap
       alert('Ürün başarıyla güncellendi!');
@@ -620,7 +670,10 @@ const UrunListeleme = () => {
       // Yeni ürün ekle
       alert('Ürün başarıyla eklendi!');
     }
+    localStorage.removeItem('yuklenenGorseller');
   };
+
+  const [anaGorselIndex, setAnaGorselIndex] = useState(null);
 
   return (
     <div className="dashboard-urun-container">
@@ -646,16 +699,26 @@ const UrunListeleme = () => {
         {/* Sağda görsellerin listesi */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
           {gorseller.map((g, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'center', gap: 16, background: '#fff',
-              borderRadius: 8, padding: 16, marginBottom: 12, boxShadow: '0 1px 6px #0001', minWidth: 220
-            }}>
+            <div
+              key={i}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 16, background: '#fff',
+                borderRadius: 8, padding: 16, marginBottom: 12, boxShadow: '0 1px 6px #0001', minWidth: 220,
+                border: anaGorselIndex === i ? '2px solid #00e676' : '1px solid #eee',
+                cursor: 'pointer'
+              }}
+              onClick={() => setAnaGorselIndex(i)}
+              title="Ana görsel olarak seç"
+            >
               <img src={g.url} alt={g.name} style={{ width: 80, height: 80, borderRadius: 16, objectFit: 'cover' }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 500, fontSize: 16 }}>{g.name}</div>
               </div>
+              {anaGorselIndex === i && (
+                <span style={{ color: '#00e676', fontSize: 28, marginRight: 8 }}>✔️</span>
+              )}
               <button
-                onClick={() => handleGorselSil(i)}
+                onClick={e => { e.stopPropagation(); handleGorselSil(i); }}
                 style={{
                   background: 'none', border: 'none', color: '#b0b0b0', fontSize: 22, cursor: 'pointer'
                 }}
