@@ -10,11 +10,7 @@ const config = {
         trustServerCertificate: true, // SSL sertifikası doğrulamasını atla
         enableArithAbort: true
     },
-    pool: {
-        max: 10, // Maksimum bağlantı sayısı
-        min: 0, // Minimum bağlantı sayısı
-        idleTimeoutMillis: 30000 // Boşta kalma süresi
-    }
+    port: 1433 // SQL Server varsayılan portu
 };
 
 // Veritabanı bağlantısını test et

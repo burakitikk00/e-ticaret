@@ -2,22 +2,9 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import '../../css/dashboard/UrunListeleme.css'; // Dashboard ürün ekleme için özel CSS
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
+import axios from 'axios';
 
 // Örnek kategori ve opsiyon verileri (ileride API'den çekilecek)
-const kategoriler = [
-  'Çantalar',
-  'Cüzdanlar',
-  'Vakko',
-  'Victoria\'s Secret',
-  'Gözlükler',
-  'Kartlık',
-  'Babet Ayakkabı',
-  'Topuklu Ayakkabı',
-  'Makyaj Çantaları',
-  'Spor Ayakkabı',
-  'Abiye Çantalar',
-];
-
 const opsiyonlar = [
   { ad: '', fiyat: '' },
 ];
@@ -52,6 +39,8 @@ const UrunListeleme = () => {
 
   // Kategori seçimi için state
   const [seciliKategoriler, setSeciliKategoriler] = useState([]);
+  const [kategoriler, setKategoriler] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Varyasyonlar için state'ler
   const [varyasyonlar, setVaryasyonlar] = useState([]); // API'den gelen varyasyonlar
@@ -661,19 +650,70 @@ const UrunListeleme = () => {
 
   // Ürün kaydedilince localStorage'dan sil
   const handleSubmit = async () => {
-    if (duzenlemeModu) {
-      // Düzenleme modunda güncelleme yap
-      alert('Ürün başarıyla güncellendi!');
-      localStorage.removeItem('duzenlenecekUrun');
-      setDuzenlemeModu(false);
-    } else {
-      // Yeni ürün ekle
-      alert('Ürün başarıyla eklendi!');
+   
+    
+    // Ürün bilgilerini hazırla
+    const productData = {
+      ProductName: urunAdi,
+      Description: aciklama,
+      BasePrice: satisFiyati,
+      Currency: paraBirimi,
+      Stock: stokAdedi,
+      ShippingType: kargoTipi,
+      ShippingCost: kargoUcreti,
+      ProductType: urunTipi,
+      Language: urunDil,
+      IsDiscounted: indirimVar,
+      ImageURL: gorseller[anaGorselIndex]?.url || ''
+    };
+
+    try {
+      // API'ye POST isteği gönder
+      const response = await fetch('http://localhost:5000/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Ürün başarıyla eklendi!');
+        // Formu temizleyebilirsin veya yönlendirme yapabilirsin
+      } else {
+        alert('Ürün eklenirken hata oluştu: ' + result.message);
+      }
+    } catch (error) {
+      alert('Sunucuya bağlanırken hata oluştu: ' + error.message);
     }
     localStorage.removeItem('yuklenenGorseller');
   };
 
   const [anaGorselIndex, setAnaGorselIndex] = useState(null);
+
+  // Kategorileri veritabanından çekme
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        console.log('Kategoriler yükleniyor...');
+        const response = await axios.get('http://localhost:5000/api/categories');
+        console.log('Kategori yanıtı:', response.data);
+        
+        if (response.data.success) {
+          setKategoriler(response.data.data);
+        } else {
+          console.error('Kategori yanıtı başarısız:', response.data);
+        }
+      } catch (error) {
+        console.error('Kategoriler yüklenirken hata:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div className="dashboard-urun-container">
@@ -920,17 +960,20 @@ const UrunListeleme = () => {
           <div style={{ fontSize: 15, color: '#666', marginBottom: 12 }}>
             Bu ürünün dükkanınızda hangi kategori altında bulunmasını istediğinizi belirleyin. Birden fazla seçim yapabilirsiniz.
           </div>
-          {kategoriler.map((kategori, i) => (
-            <div key={kategori} style={{ marginBottom: 6 }}>
-              <input
-                type="checkbox"
-                checked={seciliKategoriler.includes(kategori)}
-                onChange={() => handleKategoriChange(kategori)}
-                id={`kategori_${i}`}
-              />
-              <label htmlFor={`kategori_${i}`} style={{ marginLeft: 8 }}>{kategori}</label>
-            </div>
-          ))}
+          {loading ? (
+            <div>Kategoriler yükleniyor...</div>
+          ) : (
+            kategoriler.map((kategori) => (
+              <div key={kategori.CategoriesID} style={{ marginBottom: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={seciliKategoriler.includes(kategori.CategoriesName)}
+                  onChange={() => handleKategoriChange(kategori.CategoriesName)}
+                />
+                <label style={{ marginLeft: 8 }}>{kategori.CategoriesName}</label>
+              </div>
+            ))
+          )}
         </div>
         {/* Varyasyon & Opsiyon Seçimi Bölümü */}
         <div className="dashboard-section" style={{ flex: 1 }}>
@@ -975,7 +1018,7 @@ const UrunListeleme = () => {
             <div style={{ maxHeight: 350, overflowY: 'auto', border: '1px solid #eee', borderRadius: 4, marginBottom: 16 }}>
               {/* Gruplu kombinasyonları al */}
               {Object.entries(grupluKombinasyonlar()).map(([beden, renkler]) => (
-                <div key={beden}>
+                <div key={`beden-${beden}`}>
                   {/* Ana başlık: Beden */}
                   <div
                     style={{
@@ -1005,8 +1048,8 @@ const UrunListeleme = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {renkler.map((komb, i) => (
-                          <tr key={i}>
+                        {renkler.map((komb, index) => (
+                          <tr key={`kombinasyon-${beden}-${komb.renk}-${index}`}>
                             <td data-label="Renk" style={{ padding: 8 }}>{komb.renk}</td>
                             <td data-label="Görsel" style={{ padding: 8 }}>
                               {!komb.resim ? (
@@ -1090,21 +1133,21 @@ const UrunListeleme = () => {
             <div style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>
               Üründe hangi opsiyonların bulunacağını ve bunlar için eklenecek fiyatları belirleyin. Opsiyon belirsiz ise fiyat alanını boş bırakabilirsiniz.
             </div>
-            {opsiyonList.map((opsiyon, i) => (
-              <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            {opsiyonList.map((opsiyon, index) => (
+              <div key={`opsiyon-${index}`} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                 <input
                   className="dashboard-input"
                   style={{ flex: 2 }}
                   placeholder="Opsiyon Adı"
                   value={opsiyon.ad}
-                  onChange={e => handleOpsiyonChange(i, 'ad', e.target.value)}
+                  onChange={e => handleOpsiyonChange(index, 'ad', e.target.value)}
                 />
                 <input
                   className="dashboard-input"
                   style={{ flex: 1 }}
                   placeholder="Fiyat"
                   value={opsiyon.fiyat}
-                  onChange={e => handleOpsiyonChange(i, 'fiyat', e.target.value)}
+                  onChange={e => handleOpsiyonChange(index, 'fiyat', e.target.value)}
                 />
               </div>
             ))}

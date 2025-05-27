@@ -1,10 +1,19 @@
 const sql = require('mssql');
-const config = require('../config/db.config');
+const { config } = require('../config/db.config');
 
 // Tüm varyasyonları getir
 exports.getAllVariations = async (req, res) => {
     try {
+        console.log('Veritabanı bağlantısı deneniyor...');
+        console.log('Bağlantı bilgileri:', {
+            server: config.server,
+            database: config.database,
+            user: config.user
+        });
+
         const pool = await sql.connect(config);
+        console.log('Veritabanına başarıyla bağlanıldı!');
+
         const result = await pool.request()
             .query(`
                 SELECT v.VariationID, v.VariationName as ad,

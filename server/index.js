@@ -6,12 +6,15 @@ const { adminLogin, changePassword } = require('./controllers/authController');
 const authMiddleware = require('./middleware/auth');
 const variationRoutes = require('./routes/variationRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const productRoutes = require('./routes/productRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Hata yakalama middleware'i
@@ -52,6 +55,8 @@ app.post('/api/auth/change-password', authMiddleware, changePassword);
 // Varyasyon rotaları
 app.use('/api/variations', variationRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Server başlatma
 const PORT = process.env.PORT || 5000;

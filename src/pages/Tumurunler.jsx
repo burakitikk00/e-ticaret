@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import '../css/style.css';
 
 function Tumurunler() {
@@ -69,8 +70,29 @@ function Tumurunler() {
     const [materialMenuOpen, setMaterialMenuOpen] = useState(false);
     const [priceMenuOpen, setPriceMenuOpen] = useState(false);
 
+    // Kategori state'i
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Kategorileri veritabanından çekme
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/categories');
+                if (response.data.success) {
+                    setCategories(response.data.data);
+                }
+            } catch (error) {
+                console.error('Kategoriler yüklenirken hata:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
     // Kategori, renk ve materyal örnekleri
-    const categories = ['Ayakkabı', 'Çanta', 'Gözlük', 'Cüzdan', 'Şal'];
     const colors = ['Siyah', 'Beyaz', 'Kahverengi', 'Mavi', 'Krem'];
     const materials = ['Deri', 'Suni Deri', 'Pamuk', 'İpek', 'Kanvas', 'Naylon'];
 
@@ -201,32 +223,38 @@ function Tumurunler() {
                         </button>
                         {categoryMenuOpen && (
                             <div style={{padding: '10px'}}>
-                                {categories.map(cat => (
-                                    <div key={cat} style={{marginBottom: '8px'}}>
-                                        <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                            <input 
-                                                type="radio" 
-                                                name="kategori" 
-                                                value={cat}
-                                                checked={selectedCategory === cat}
-                                                onChange={() => setSelectedCategory(cat)}
-                                            />
-                                            {cat}
-                                        </label>
-                                    </div>
-                                ))}
-                                <div>
-                                    <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                        <input 
-                                            type="radio" 
-                                            name="kategori" 
-                                            value=""
-                                            checked={selectedCategory === ''}
-                                            onChange={() => setSelectedCategory('')}
-                                        />
-                                        Tümü
-                                    </label>
-                                </div>
+                                {loading ? (
+                                    <div>Kategoriler yükleniyor...</div>
+                                ) : (
+                                    <>
+                                        {categories.map(category => (
+                                            <div key={category.CategoryID} style={{marginBottom: '8px'}}>
+                                                <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                                    <input 
+                                                        type="radio" 
+                                                        name="kategori" 
+                                                        value={category.CategoryName}
+                                                        checked={selectedCategory === category.CategoryName}
+                                                        onChange={() => setSelectedCategory(category.CategoryName)}
+                                                    />
+                                                    {category.CategoryName}
+                                                </label>
+                                            </div>
+                                        ))}
+                                        <div>
+                                            <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                                <input 
+                                                    type="radio" 
+                                                    name="kategori" 
+                                                    value=""
+                                                    checked={selectedCategory === ''}
+                                                    onChange={() => setSelectedCategory('')}
+                                                />
+                                                Tümü
+                                            </label>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
