@@ -37,9 +37,8 @@ const UrunListeleme = () => {
   const [aciklama, setAciklama] = useState('');
   const [duzenlemeModu, setDuzenlemeModu] = useState(false);
 
-  // Kategori seçimi için state
-  const [seciliKategoriler, setSeciliKategoriler] = useState([]);
   const [kategoriler, setKategoriler] = useState([]);
+  const [seciliKategori, setSeciliKategori] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Varyasyonlar için state'ler
@@ -98,13 +97,9 @@ const UrunListeleme = () => {
     }, 0);
   }, [varyasyonKombinasyonlari, varyasyon1, varyasyon2]);
 
-  // Kategori seçimi değiştiğinde çalışır
+  // Kategori seçimi değiştiğinde çalışır (radio button mantığı)
   const handleKategoriChange = (kategori) => {
-    setSeciliKategoriler(prev =>
-      prev.includes(kategori)
-        ? prev.filter(k => k !== kategori)
-        : [...prev, kategori]
-    );
+    setSeciliKategori(kategori === seciliKategori ? '' : kategori);
   };
 
   // Opsiyon ekle
@@ -407,7 +402,7 @@ const UrunListeleme = () => {
       setParaBirimi(urun.paraBirimi);
       setStokAdedi(urun.stok.toString());
       setAciklama(urun.aciklama);
-      setSeciliKategoriler(urun.kategori);
+      setSeciliKategori(urun.kategori && urun.kategori.length > 0 ? urun.kategori[0] : '');
       setKargoTipi(urun.kargoTipi);
       setKargoUcreti(urun.kargoUcreti);
       setUrunTipi(urun.urunTipi);
@@ -650,43 +645,84 @@ const UrunListeleme = () => {
 
   // Ürün kaydedilince localStorage'dan sil
   const handleSubmit = async () => {
-   
-    
-    // Ürün bilgilerini hazırla
-    const productData = {
-      ProductName: urunAdi,
-      Description: aciklama,
-      BasePrice: satisFiyati,
-      Currency: paraBirimi,
-      Stock: stokAdedi,
-      ShippingType: kargoTipi,
-      ShippingCost: kargoUcreti,
-      ProductType: urunTipi,
-      Language: urunDil,
-      IsDiscounted: indirimVar,
-      ImageURL: gorseller[anaGorselIndex]?.url || ''
-    };
-
     try {
-      // API'ye POST isteği gönder
-      const response = await fetch('http://localhost:5000/api/products', {
+      // Önce ürünü kaydet
+      const productData = {
+        ProductName: urunAdi,
+        Description: aciklama,
+        BasePrice: satisFiyati,
+        Currency: paraBirimi,
+        Stock: stokAdedi,
+        ShippingType: kargoTipi,
+        ShippingCost: kargoUcreti,
+        ProductType: urunTipi,
+        Language: urunDil,
+        IsDiscounted: indirimVar,
+        ImageURL: gorseller[anaGorselIndex]?.url || '',
+      };
+
+      console.log('Gönderilen ürün verisi:', productData);
+
+      // Ürünü kaydet ve ProductID'yi al
+      const productResponse = await fetch('http://localhost:5000/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productData)
       });
 
-      const result = await response.json();
+      const productResult = await productResponse.json();
+      console.log('Ürün kayıt yanıtı:', productResult);
 
-      if (response.ok) {
-        alert('Ürün başarıyla eklendi!');
-        // Formu temizleyebilirsin veya yönlendirme yapabilirsin
-      } else {
-        alert('Ürün eklenirken hata oluştu: ' + result.message);
+      if (!productResponse.ok) {
+        throw new Error(`Ürün kaydedilirken hata: ${productResult.message || productResponse.statusText}`);
       }
+
+      if (!productResult.ProductID) {
+        console.error('Ürün kayıt yanıtı detayı:', productResult);
+        throw new Error('Ürün kaydedildi fakat ProductID alınamadı. Lütfen backend loglarını kontrol edin.');
+      }
+
+      const productId = productResult.ProductID;
+
+      // Seçili kategoriyi kaydet
+      const selectedCategory = kategoriler.find(kat => kat.CategoriesName === seciliKategori);
+      
+      if (!selectedCategory) {
+        console.log('Seçili kategori bulunmadığı için kategori kaydı atlanıyor');
+      } else {
+        console.log(`Kategori ${selectedCategory.CategoriesID} kaydediliyor...`);
+        
+        const categoryResponse = await fetch('http://localhost:5000/api/product-categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ProductID: productId,
+            CategoriesID: selectedCategory.CategoriesID
+          })
+        });
+
+        const categoryResult = await categoryResponse.json();
+        console.log(`Kategori kayıt yanıtı:`, categoryResult);
+        
+        if (!categoryResponse.ok) {
+          throw new Error(`Kategori kaydedilirken hata: ${categoryResult.message || categoryResponse.statusText}`);
+        }
+      }
+
+      alert('Ürün ve kategori başarıyla kaydedildi!');
+      // Formu temizle
+      setUrunAdi('');
+      setSatisFiyati('');
+      setStokAdedi('');
+      setAciklama('');
+      setSeciliKategori(''); // Tek kategori için state'i temizle
+      setGorseller([]);
+      localStorage.removeItem('yuklenenGorseller');
+
     } catch (error) {
-      alert('Sunucuya bağlanırken hata oluştu: ' + error.message);
+      console.error('Kayıt hatası detayı:', error);
+      alert('Ürün kaydedilirken bir hata oluştu: ' + error.message);
     }
-    localStorage.removeItem('yuklenenGorseller');
   };
 
   const [anaGorselIndex, setAnaGorselIndex] = useState(null);
@@ -958,7 +994,7 @@ const UrunListeleme = () => {
         <div className="dashboard-section" style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>KATEGORİ SEÇİMİ</div>
           <div style={{ fontSize: 15, color: '#666', marginBottom: 12 }}>
-            Bu ürünün dükkanınızda hangi kategori altında bulunmasını istediğinizi belirleyin. Birden fazla seçim yapabilirsiniz.
+            Bu ürünün dükkanınızda hangi kategori altında bulunmasını istediğinizi belirleyin.
           </div>
           {loading ? (
             <div>Kategoriler yükleniyor...</div>
@@ -966,8 +1002,9 @@ const UrunListeleme = () => {
             kategoriler.map((kategori) => (
               <div key={kategori.CategoriesID} style={{ marginBottom: 6 }}>
                 <input
-                  type="checkbox"
-                  checked={seciliKategoriler.includes(kategori.CategoriesName)}
+                  type="radio"
+                  name="kategori"
+                  checked={seciliKategori === kategori.CategoriesName}
                   onChange={() => handleKategoriChange(kategori.CategoriesName)}
                 />
                 <label style={{ marginLeft: 8 }}>{kategori.CategoriesName}</label>

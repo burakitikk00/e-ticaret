@@ -36,7 +36,7 @@ exports.createProduct = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Ürün başarıyla eklendi',
-      product: newProduct
+      ProductID: newProduct.ProductID
     });
   } catch (error) {
     console.error('Ürün ekleme hatası:', error);

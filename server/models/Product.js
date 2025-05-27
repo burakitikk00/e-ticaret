@@ -3,6 +3,7 @@ const { sql, config } = require('../config/db.config');
 // MSSQL ile ürün ekleme fonksiyonu
 async function insertProduct(product) {
     try {
+        console.log('Ürün ekleniyor:', product);
         const pool = await sql.connect(config);
         const result = await pool.request()
             .input('ProductName', sql.NVarChar, product.ProductName)
@@ -20,8 +21,11 @@ async function insertProduct(product) {
                 (ProductName, Description, BasePrice, Currency, Stock, ShippingType, ShippingCost, ProductType, Language, IsDiscounted, ImageURL)
                 OUTPUT INSERTED.*
                 VALUES (@ProductName, @Description, @BasePrice, @Currency, @Stock, @ShippingType, @ShippingCost, @ProductType, @Language, @IsDiscounted, @ImageURL)`);
+        
+        console.log('Ürün ekleme sonucu:', result.recordset[0]);
         return result.recordset[0];
     } catch (err) {
+        console.error('Ürün ekleme hatası:', err);
         throw err;
     }
 }
