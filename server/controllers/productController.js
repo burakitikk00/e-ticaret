@@ -1,4 +1,4 @@
-const { insertProduct } = require('../models/Product'); // MSSQL için yardımcı fonksiyonu import et
+const { insertProduct, deleteProduct, updateProductStatus, getProductById } = require('../models/Product'); // Yeni fonksiyonları import ettim
 const { toProductOpsiyon } = require('../models/ProductOpsiyon'); // Opsiyon ekleme fonksiyonunu import et
 
 // Ürün ekleme fonksiyonu (MSSQL)
@@ -55,5 +55,57 @@ exports.createProduct = async (req, res) => {
       success: false,
       message: 'Ürün eklenirken hata oluştu: ' + error.message
     });
+  }
+};
+// Tüm ürünleri getir (MSSQL)
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await require('../models/Product').getAllProducts();
+    console.log('getAllProducts tarafından dönen ürünlerin Status değerleri:', products.map(p => ({ id: p.ProductID, status: p.Status }))); // Log ekledim
+    res.status(200).json({ success: true, products });
+  } catch (error) {
+    console.error('Ürünleri getirme hatası:', error);
+    res.status(500).json({ success: false, message: 'Ürünleri getirirken hata oluştu: ' + error.message });
+  }
+};
+
+// Ürünü silme controller'ı
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await deleteProduct(Number(id));
+    res.status(200).json({ success: true, message: 'Ürün silindi' });
+  } catch (error) {
+    console.error('Ürün silme hatası:', error);
+    res.status(500).json({ success: false, message: 'Ürün silinirken hata oluştu: ' + error.message });
+  }
+};
+
+// Ürün durumunu güncelleme controller'ı (Aktif/Pasif - Status alanı)
+exports.updateProductStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // Body'den status değerini al (1 veya 0)
+    console.log(`API üzerinden durum güncelleme isteği: Ürün ID: ${id}, Body Status: ${status}`); // Log ekledim
+
+    // Status değeri bit tipinde olduğu için direkt kullanabiliriz
+    await updateProductStatus(Number(id), status);
+
+    res.status(200).json({ success: true, message: 'Ürün durumu güncellendi' });
+  } catch (error) {
+    console.error('API durum güncelleme hatası:', error); // Log ekledim
+    res.status(500).json({ success: false, message: 'Durum güncellenirken hata oluştu: ' + error.message });
+  }
+};
+
+// ID ile ürün detayını getirme controller'ı
+exports.getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await getProductById(Number(id));
+    res.status(200).json({ success: true, product });
+  } catch (error) {
+    console.error('Ürün getirme hatası:', error);
+    res.status(500).json({ success: false, message: 'Ürün getirilirken hata oluştu: ' + error.message });
   }
 };

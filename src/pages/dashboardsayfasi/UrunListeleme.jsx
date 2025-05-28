@@ -393,30 +393,6 @@ const UrunListeleme = () => {
     }
   }, [varyasyonKombinasyonlari, varyasyon1, varyasyon2, hesaplaToplamStok]);
 
-  // Düzenleme modunda ürün bilgilerini yükle
-  useEffect(() => {
-    const duzenlenecekUrun = localStorage.getItem('duzenlenecekUrun');
-    if (duzenlenecekUrun) {
-      const urun = JSON.parse(duzenlenecekUrun);
-      setUrunAdi(urun.ad);
-      setSatisFiyati(urun.fiyat.replace(' TL', ''));
-      setParaBirimi(urun.paraBirimi);
-      setStokAdedi(urun.stok.toString());
-      setAciklama(urun.aciklama);
-      setSeciliKategori(urun.kategori && urun.kategori.length > 0 ? urun.kategori[0] : '');
-      setKargoTipi(urun.kargoTipi);
-      setKargoUcreti(urun.kargoUcreti);
-      setUrunTipi(urun.urunTipi);
-      setUrunDil(urun.urunDil);
-      setDuzenlemeModu(true);
-      
-      // Görselleri yükle
-      if (urun.resim) {
-        setGorseller([{ url: urun.resim, name: 'Ürün Görseli' }]);
-      }
-    }
-  }, []);
-
   // Varyasyonları API'den getir
   useEffect(() => {
     const fetchVaryasyonlar = async () => {
@@ -795,7 +771,7 @@ const UrunListeleme = () => {
     <div className="dashboard-urun-container">
       {/* Breadcrumb */}
       <div className="dashboard-breadcrumb">
-        <b>ÜRÜNLER</b> &nbsp; &gt; &nbsp; <b>{duzenlemeModu ? 'ÜRÜN DÜZENLEME' : 'ÜRÜN LİSTELEME'}</b>
+        <b>ÜRÜNLER</b> &nbsp; &gt; &nbsp; <b>ÜRÜN LİSTELEME</b>
       </div>
 
       {/* Ürün görseli ve video yükleme alanı */}
@@ -1317,7 +1293,7 @@ const UrunListeleme = () => {
 
       {/* Ürünü Satışa Çıkar butonu */}
       <button className="dashboard-button" onClick={handleSubmit}>
-        {duzenlemeModu ? 'ÜRÜNÜ GÜNCELLE' : 'ÜRÜNÜ SATIŞA ÇIKAR'}
+        ÜRÜNÜ SATIŞA ÇIKAR
       </button>
     </div>
   );

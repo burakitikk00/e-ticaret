@@ -30,12 +30,6 @@ async function insertProduct(product) {
     }
 }
 
-
-
-
-
-
-
 // (İsteğe bağlı) Tüm ürünleri listeleme fonksiyonu
 async function getAllProducts() {
     try {
@@ -47,7 +41,102 @@ async function getAllProducts() {
     }
 }
 
+// Ürünü silen fonksiyon (İlgili bağlı verileri de siler)
+async function deleteProduct(productId) {
+    let pool;
+    try {
+        pool = await sql.connect(config);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin(); // Transaction başlat
+
+        // Ürünle ilişkili kategorileri sil
+        await transaction.request()
+            .input('ProductID', sql.Int, productId)
+            .query('DELETE FROM dbo.ProductCategories WHERE ProductID = @ProductID');
+        console.log(`Ürün ID ${productId} için ProductCategories kayıtları silindi.`);
+
+        // Ürünle ilişkili opsiyonları sil
+        await transaction.request()
+             .input('ProductID', sql.Int, productId)
+             .query('DELETE FROM dbo.ProductOpsiyon WHERE ProductID = @ProductID');
+        console.log(`Ürün ID ${productId} için ProductOpsiyon kayıtları silindi.`);
+
+        // Ürünle ilişkili varyasyon kombinasyonlarını sil
+        await transaction.request()
+             .input('ProductID', sql.Int, productId)
+             .query('DELETE FROM dbo.ProductVariationCombinations WHERE ProductID = @ProductID');
+        console.log(`Ürün ID ${productId} için ProductVariationCombinations kayıtları silindi.`);
+
+        // VariationOptions ProductID'ye direkt bağlı olmadığı için buradan silme işlemi yapmıyoruz.
+        // VariationOptions tablosundaki kayıtlar, bağlı olduğu üst seviyedeki varyasyonlar silindiğinde (on cascade delete ile veya manuel olarak) silinmelidir.
+        // Bu senaryoda Variations tablosu ProductID'ye bağlıysa, Variations silindiğinde VariationOptions otomatik silinebilir (FOREIGN KEY CASCADE DELETE ayarı varsa)
+        // Veya Variations tablosunu sildiğimizde VariationOptions'ı da ayrıca silmemiz gerekebilir.
+
+        // Ana ürünü sil
+        await transaction.request()
+            .input('ProductID', sql.Int, productId)
+            .query('DELETE FROM dbo.Products WHERE ProductID = @ProductID');
+        console.log(`Ürün ID ${productId} Products tablosundan silindi.`);
+
+        await transaction.commit(); // Transaction başarılı, değişiklikleri kaydet
+        console.log(`Ürün ID ${productId} ve ilgili tüm kayıtları başarıyla silindi.`);
+        return true;
+
+    } catch (err) {
+        console.error('Ürün silme işlemi sırasında genel hata:', err);
+        // Hata oluştu, transaction'ı geri al
+        if (pool && pool.connected) {
+             // Eğer transaction başladıysa ve henüz commit edilmediyse geri al
+             const transaction = new sql.Transaction(pool); // Yeniden transaction objesi oluşturmak daha güvenli olabilir.
+             transaction.rollback(rollbackErr => {
+                if (rollbackErr) {
+                   console.error('Transaction rollback sırasında hata oluştu:', rollbackErr);
+                }
+                console.error('Transaction geri alındı.');
+             });
+        }
+        throw err; // Hatayı tekrar fırlat
+    }
+    // finally blokunda pool kapatmak transaction rollback durumunda sorun yaratabilir,
+    // bu nedenle burada kapatmıyoruz. Uygulamanın genelinde bağlantı yönetimi farklı olabilir.
+}
+
+// Ürün durumunu güncelleyen fonksiyon (Aktif/Pasif - Status alanı)
+async function updateProductStatus(productId, status) {
+    try {
+        console.log(`Ürün durumunu güncelleme isteği alındı - Ürün ID: ${productId}, Yeni Status: ${status}`);
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('ProductID', sql.Int, productId)
+            .input('Status', sql.Bit, status) // Status alanını güncelleyeceğiz (1 aktif, 0 pasif)
+            .query('UPDATE dbo.Products SET Status = @Status WHERE ProductID = @ProductID');
+
+        console.log(`Ürün ID ${productId} durumu güncellendi. Sorgu sonucu:`, result);
+        return true;
+    } catch (err) {
+        console.error(`Ürün ID ${productId} için durum güncelleme hatası:`, err);
+        throw err;
+    }
+}
+
+// ID ile ürün detayını getiren fonksiyon
+async function getProductById(productId) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('ProductID', sql.Int, productId)
+            .query('SELECT * FROM dbo.Products WHERE ProductID = @ProductID');
+        return result.recordset[0];
+    } catch (err) {
+        throw err;
+    }
+}
+
 module.exports = {
     insertProduct,
-    getAllProducts
+    getAllProducts,
+    deleteProduct,
+    updateProductStatus,
+    getProductById,
 };

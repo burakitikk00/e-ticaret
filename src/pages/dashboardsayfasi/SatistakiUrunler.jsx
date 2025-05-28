@@ -1,116 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import '../../css/dashboard/SatistakiUrunler.css';
-
-// Örnek ürün verisi (ileride API'den çekilecek)
-const urunler = [
-  {
-    id: 1,
-    ad: 'Yves Saint Laurent clutch',
-    durum: 'AKTİF',
-    stok: 12,
-    fiyat: '850,00 TL',
-    tarih: '13/05/2025',
-    resim: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    aciklama: 'Yves Saint Laurent marka clutch çanta',
-    kategori: ['Çantalar'],
-    paraBirimi: 'TL',
-    kargoTipi: 'Sepette Ödeme',
-    kargoUcreti: '0',
-    urunTipi: 'Fiziksel',
-    urunDil: 'Türkçe'
-  },
-  {
-    id: 2,
-    ad: 'Mini vakko Speddy',
-    durum: 'PASİF',
-    stok: 0,
-    fiyat: '779,99 TL',
-    tarih: '12/05/2025',
-    resim: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    aciklama: 'Vakko marka mini speddy çanta',
-    kategori: ['Çantalar'],
-    paraBirimi: 'TL',
-    kargoTipi: 'Ücretsiz Kargo',
-    kargoUcreti: '0',
-    urunTipi: 'Fiziksel',
-    urunDil: 'Türkçe'
-  },
-  {
-    id: 3,
-    ad: 'Victoria Secret Çanta',
-    durum: 'AKTİF',
-    stok: 5,
-    fiyat: '1.299,00 TL',
-    tarih: '10/05/2025',
-    resim: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    aciklama: 'Victoria Secret marka çanta',
-    kategori: ['Çantalar'],
-    paraBirimi: 'TL',
-    kargoTipi: 'Sepette Ödeme',
-    kargoUcreti: '0',
-    urunTipi: 'Fiziksel',
-    urunDil: 'Türkçe'
-  },
-  // Daha fazla ürün eklenebilir...
-];
 
 const SatistakiUrunler = () => {
   const [acikMenu, setAcikMenu] = useState(null);
   const [aktifSayfa, setAktifSayfa] = useState(1);
-  const [urunler, setUrunler] = useState([
-    {
-      id: 1,
-      ad: 'Yves Saint Laurent clutch',
-      durum: 'AKTİF',
-      stok: 12,
-      fiyat: '850,00 TL',
-      tarih: '13/05/2025',
-      resim: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      aciklama: 'Yves Saint Laurent marka clutch çanta',
-      kategori: ['Çantalar'],
-      paraBirimi: 'TL',
-      kargoTipi: 'Sepette Ödeme',
-      kargoUcreti: '0',
-      urunTipi: 'Fiziksel',
-      urunDil: 'Türkçe'
-    },
-    {
-      id: 2,
-      ad: 'Mini vakko Speddy',
-      durum: 'PASİF',
-      stok: 0,
-      fiyat: '779,99 TL',
-      tarih: '12/05/2025',
-      resim: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      aciklama: 'Vakko marka mini speddy çanta',
-      kategori: ['Çantalar'],
-      paraBirimi: 'TL',
-      kargoTipi: 'Ücretsiz Kargo',
-      kargoUcreti: '0',
-      urunTipi: 'Fiziksel',
-      urunDil: 'Türkçe'
-    },
-    {
-      id: 3,
-      ad: 'Victoria Secret Çanta',
-      durum: 'AKTİF',
-      stok: 5,
-      fiyat: '1.299,00 TL',
-      tarih: '10/05/2025',
-      resim: 'https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-      aciklama: 'Victoria Secret marka çanta',
-      kategori: ['Çantalar'],
-      paraBirimi: 'TL',
-      kargoTipi: 'Sepette Ödeme',
-      kargoUcreti: '0',
-      urunTipi: 'Fiziksel',
-      urunDil: 'Türkçe'
-    }
-  ]);
+  const [urunler, setUrunler] = useState([]); // Başlangıçta boş, ürünler API'den gelecek
   const sayfaBasinaUrun = 25;
   const menuRefs = useRef({}); // Her ürün için ayrı ref tutacak obje
-  const navigate = useNavigate();
 
   // Toplam sayfa sayısını hesapla
   const toplamSayfa = Math.ceil(urunler.length / sayfaBasinaUrun);
@@ -152,50 +48,114 @@ const SatistakiUrunler = () => {
     };
   }, []);
 
-  // Ürün düzenleme sayfasına yönlendir
-  const handleDuzenle = (urun) => {
-    try {
-      // Ürün bilgilerini localStorage'a kaydet
-      localStorage.setItem('duzenlenecekUrun', JSON.stringify(urun));
-      // Ürün listeleme sayfasına yönlendir
-      navigate('/dashboard/urun-listeleme');
-    } catch (error) {
-      console.error('Düzenleme hatası:', error);
-      alert('Düzenleme işlemi sırasında bir hata oluştu!');
-    }
-  };
-
-  // Ürünü pasifleştir/aktifleştir
-  const handleDurumDegistir = (urun) => {
-    try {
-      setUrunler(prevUrunler => 
-        prevUrunler.map(u => 
-          u.id === urun.id 
-            ? { ...u, durum: u.durum === 'AKTİF' ? 'PASİF' : 'AKTİF' } 
-            : u
-        )
-      );
-      setAcikMenu(null);
-      alert(`Ürün ${urun.durum === 'AKTİF' ? 'pasifleştirildi' : 'aktifleştirildi'}!`);
-    } catch (error) {
-      console.error('Durum değiştirme hatası:', error);
-      alert('Durum değiştirme işlemi sırasında bir hata oluştu!');
-    }
-  };
-
   // Ürünü sil
-  const handleSil = (urun) => {
+  const handleSil = async (urun) => {
     try {
       if (window.confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
-        setUrunler(prevUrunler => prevUrunler.filter(u => u.id !== urun.id));
-        setAcikMenu(null);
-        alert('Ürün başarıyla silindi!');
+        // API'ye DELETE isteği gönder
+        const response = await fetch(`http://localhost:5000/api/products/${urun.id}`, {
+          method: 'DELETE',
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Silme başarılı olursa frontend state'ini güncelle
+          setUrunler(prevUrunler => prevUrunler.filter(u => u.id !== urun.id));
+          setAcikMenu(null);
+          alert('Ürün başarıyla silindi!');
+        } else {
+          // Hata durumunda kullanıcıya bilgi ver
+          alert('Ürün silinirken bir hata oluştu: ' + data.message);
+        }
       }
     } catch (error) {
       console.error('Silme hatası:', error);
       alert('Silme işlemi sırasında bir hata oluştu!');
     }
   };
+
+  // Ürünü pasifleştir/aktifleştir
+  const handleDurumDegistir = async (urun) => {
+    try {
+      // Yeni durumu belirle (Eğer ürünün Status'ü true ise false yap, değilse true yap)
+      const yeniStatus = urun.Status === true ? false : true; // urun.Status boolean değerine göre belirle
+
+      // API'ye PATCH isteği gönder
+      const response = await fetch(`http://localhost:5000/api/products/${urun.id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: yeniStatus }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Durum güncelleme başarılı olursa frontend state'ini güncelle
+        setUrunler(prevUrunler =>
+          prevUrunler.map(u =>
+            u.id === urun.id
+              // Frontend durumunu yeniStatus değerine göre güncelle
+              ? { ...u, durum: yeniStatus === true ? 'AKTİF' : 'PASİF', Status: yeniStatus } // Status alanını da boolean olarak güncelle
+              : u
+          )
+        );
+        setAcikMenu(null);
+        alert(`Ürün ${yeniStatus === false ? 'pasifleştirildi' : 'aktifleştirildi'}!`); // Mesajı yeniStatus boolean değerine göre ayarla
+      } else {
+        // Hata durumunda kullanıcıya bilgi ver
+        alert('Ürün durumu güncellenirken bir hata oluştu: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Durum değiştirme hatası:', error);
+      alert('Durum değiştirme işlemi sırasında bir hata oluştu!');
+    }
+  };
+
+  // Sayfa yüklendiğinde API'den ürünleri çek
+  useEffect(() => {
+    fetch('http://localhost:5000/api/products') // Backend API adresini kendi portuna göre ayarla
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log('API\'den çekilen ürün ham veri:', data.products); // Log ekledim
+          // API'den gelen ürünleri uygun formata çevirip state'e aktar
+          // Ürünleri eklenme tarihine göre yeniden eskiye doğru sırala
+          const sortedProducts = data.products.sort((a, b) => {
+            const dateA = new Date(a.CreatedAt);
+            const dateB = new Date(b.CreatedAt);
+            return dateB - dateA; // Yeniden eskiye doğru sıralama (azalan)
+          });
+
+          setUrunler(
+            sortedProducts.map(urun => ({
+              id: urun.ProductID,
+              ad: urun.ProductName,
+              // Durumu API'den gelen Status değerine göre belirle (true: AKTİF, false/null: PASİF)
+              durum: urun.Status === true ? 'AKTİF' : 'PASİF',
+              stok: urun.Stock,
+              fiyat: `${Number(urun.BasePrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ${urun.Currency}`,
+              tarih: urun.CreatedAt ? new Date(urun.CreatedAt).toLocaleDateString('tr-TR') : '',
+              // ImageURL boş veya null ise placeholder göster
+              resim: urun.ImageURL || '', // src hatasını önlemek için boş string yap
+              aciklama: urun.Description,
+              kategori: [], // Kategoriler için ayrıca API çağrısı gerekebilir
+              paraBirimi: urun.Currency,
+              kargoTipi: urun.ShippingType,
+              kargoUcreti: urun.ShippingCost || '0', // Backend modelde ShippingCost idi
+              urunTipi: urun.ProductType,
+              urunDil: urun.Language,
+              Status: urun.Status // Backend'den gelen Status değerini tutalım
+            }))
+          );
+        }
+      })
+      .catch(err => {
+        console.error('Ürünler çekilemedi:', err);
+      });
+  }, []); // Sadece ilk yüklemede çalışır
 
   return (
     <div className="satistaki-urunler-container">
@@ -216,7 +176,12 @@ const SatistakiUrunler = () => {
             <tr key={urun.id}>
               <td>
                 <div className="satistaki-urun-bilgi">
-                  <img src={urun.resim} alt={urun.ad} className="satistaki-urun-resim" />
+                  {urun.resim ? ( // urun.resim dolu mu kontrol et
+                    <img src={urun.resim} alt={urun.ad} className="satistaki-urun-resim" />
+                  ) : (
+                    // Resim yoksa buraya varsayılan bir resim veya boş bir div koyabilirsin
+                     <div className="satistaki-urun-resim-placeholder">Resim Yok</div>
+                  )}
                   <span className="satistaki-urun-adi">{urun.ad}</span>
                 </div>
               </td>
@@ -238,12 +203,6 @@ const SatistakiUrunler = () => {
                   </button>
                   {acikMenu === urun.id && (
                     <div className="satistaki-islem-menu">
-                      <div 
-                        className="satistaki-islem-item"
-                        onClick={() => handleDuzenle(urun)}
-                      >
-                        Düzenle
-                      </div>
                       <div 
                         className="satistaki-islem-item"
                         onClick={() => handleDurumDegistir(urun)}
