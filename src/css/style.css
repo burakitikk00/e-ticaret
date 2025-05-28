@@ -277,3 +277,27 @@
     height: 100%;
     color: var(--primary-color, #000);
 }
+.products-page {
+    display: grid; /* Grid görünümü için */
+    grid-template-columns: repeat(4, 1fr); /* 4 sütunlu grid yapısı */
+    gap: 20px; /* Grid öğeleri arası boşluk */
+    width: 100%; /* Tam genişlik */
+    margin: 0 auto; /* Ortalama */
+    padding: 1rem; /* İç boşluk */
+}
+
+/* Responsive tasarım için medya sorguları */
+@media screen and (max-width: 1200px) {
+    .products-page {
+        grid-template-columns: repeat(3, 1fr); /* 3 sütunlu grid yapısı */
+        gap: 15px; /* Daha küçük boşluk */
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .products-page {
+        grid-template-columns: repeat(2, 1fr); /* 2 sütunlu grid yapısı */
+        gap: 12px; /* Daha da küçük boşluk */
+    }
+}
+
