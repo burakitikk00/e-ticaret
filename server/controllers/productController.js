@@ -1,4 +1,4 @@
-const { insertProduct, deleteProduct, updateProductStatus, getProductById } = require('../models/Product'); // Yeni fonksiyonları import ettim
+const { insertProduct, deleteProduct, updateProductStatus, getProductById, getAllProductsWithCategory, getProductsByCategory } = require('../models/Product'); // Yeni fonksiyonları import ettim
 const { toProductOpsiyon } = require('../models/ProductOpsiyon'); // Opsiyon ekleme fonksiyonunu import et
 
 // Ürün ekleme fonksiyonu (MSSQL)
@@ -60,8 +60,13 @@ exports.createProduct = async (req, res) => {
 // Tüm ürünleri getir (MSSQL)
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await require('../models/Product').getAllProducts();
-    console.log('getAllProducts tarafından dönen ürünlerin Status değerleri:', products.map(p => ({ id: p.ProductID, status: p.Status }))); // Log ekledim
+    const { kategori } = req.query; // URL'den kategori parametresini al
+    
+    // Eğer kategori parametresi varsa, o kategoriye göre filtrele
+    const products = kategori 
+      ? await getProductsByCategory(kategori)
+      : await getAllProductsWithCategory();
+    
     res.status(200).json({ success: true, products });
   } catch (error) {
     console.error('Ürünleri getirme hatası:', error);

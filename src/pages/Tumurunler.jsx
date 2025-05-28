@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../css/style.css';
+import { useLocation, useParams } from 'react-router-dom';
 
 function Tumurunler() {
+    const location = useLocation();
+    const { kategori } = useParams(); // URL'den kategori parametresini al
+    // URL'den query parametresini al
+    const params = new URLSearchParams(location.search);
+    const queryKategori = params.get('kategori'); // örn: "Çantalar"
+    
+    // Öncelik sırası: 1. URL'den gelen kategori, 2. Query'den gelen kategori
+    const kategoriParam = kategori || queryKategori;
     // Ürünler state'i - örnek verileri kaldırıp boş array ile başlat
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true); // Yükleme durumu için state
@@ -30,14 +39,29 @@ function Tumurunler() {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                console.log('Ürünler yükleniyor...');
-                const response = await axios.get('http://localhost:5000/api/products');
+                console.log('Ürünler yükleniyor... Kategori:', kategoriParam);
+                
+                // API endpoint'ini kategori parametresine göre ayarla
+                const endpoint = kategoriParam 
+                    ? `http://localhost:5000/api/products?kategori=${encodeURIComponent(kategoriParam)}`
+                    : 'http://localhost:5000/api/products';
+                
+                const response = await axios.get(endpoint);
                 console.log('API yanıtı:', response.data);
                 
                 if (response.data.success) {
                     // API'den gelen ürünleri dönüştür
                     const formattedProducts = response.data.products.map(product => {
                         console.log('İşlenen ürün:', product);
+                        
+                        // Opsiyonları parse et
+                        const opsiyonlar = product.Opsiyonlar ? product.Opsiyonlar.split(', ') : [];
+                        const opsiyonFiyatlari = product.OpsiyonFiyatlari ? product.OpsiyonFiyatlari.split(', ').map(Number) : [];
+                        
+                        // Renk ve materyal bilgilerini opsiyonlardan çıkar
+                        const renk = opsiyonlar.find(op => colors.includes(op)) || '';
+                        const materyal = opsiyonlar.find(op => materials.includes(op)) || '';
+                        
                         return {
                             id: product.ProductID,
                             resim: product.ImageURL ? product.ImageURL : "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
@@ -49,7 +73,12 @@ function Tumurunler() {
                             kargoUcreti: product.ShippingCost,
                             urunTipi: product.ProductType,
                             dil: product.Language,
-                            indirimli: product.IsDiscounted
+                            indirimli: product.IsDiscounted,
+                            renk: renk,
+                            materyal: materyal,
+                            opsiyonlar: opsiyonlar,
+                            opsiyonFiyatlari: opsiyonFiyatlari,
+                            CategoriesName: product.CategoriesName
                         };
                     });
                     console.log('Dönüştürülmüş ürünler:', formattedProducts);
@@ -67,7 +96,7 @@ function Tumurunler() {
         };
 
         fetchProducts();
-    }, []);
+    }, [kategoriParam]); // kategoriParam değiştiğinde ürünleri yeniden çek
 
     // Ürünler state'ini kontrol et
     useEffect(() => {
@@ -103,14 +132,48 @@ function Tumurunler() {
         { value: 'last', label: 'Son Eklenen' },
     ];
 
-    // Filtreleme fonksiyonu - basitleştirilmiş hali
+    // Filtreleme fonksiyonu - tüm filtreleri uygula
     const filteredProducts = products.filter(product => {
-        // Fiyat string'ini sayıya çevir (örn: "TL 100" -> 100)
+        // URL'den gelen kategori filtresi
+        const urlCategoryMatch = kategoriParam ? product.CategoriesName === kategoriParam : true;
+        
+        // Seçilen kategori filtresi
+        const selectedCategoryMatch = selectedCategory ? product.CategoriesName === selectedCategory : true;
+        
+        // Fiyat filtresi
         const price = parseFloat(product.fiyat.split(' ')[0]);
-        return price >= priceRange[0] && price <= priceRange[1];
+        const priceMatch = price >= priceRange[0] && price <= priceRange[1];
+        
+        // Renk filtresi (ürünün renk bilgisi varsa)
+        const colorMatch = selectedColor ? product.renk === selectedColor : true;
+        
+        // Materyal filtresi (ürünün materyal bilgisi varsa)
+        const materialMatch = selectedMaterial ? product.materyal === selectedMaterial : true;
+
+        // Tüm filtreleri birleştir
+        return urlCategoryMatch && selectedCategoryMatch && priceMatch && colorMatch && materialMatch;
     });
 
-    console.log('Filtrelenmiş ürünler:', filteredProducts);
+    // Sıralama işlemi
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+        const priceA = parseFloat(a.fiyat.split(' ')[0]);
+        const priceB = parseFloat(b.fiyat.split(' ')[0]);
+        
+        switch (sortOption) {
+            case 'price-asc':
+                return priceA - priceB;
+            case 'price-desc':
+                return priceB - priceA;
+            case 'first':
+                return a.id - b.id;
+            case 'last':
+                return b.id - a.id;
+            default: // 'featured'
+                return 0; // Varsayılan sıralama
+        }
+    });
+
+    console.log('Filtrelenmiş ve sıralanmış ürünler:', sortedProducts);
 
     // Ürün grid'ini render eden kısmı kontrol et
     console.log('Render öncesi filteredProducts:', filteredProducts);
@@ -136,8 +199,12 @@ function Tumurunler() {
     return (
         <div style={{position:'relative'}}>
             <div style={{marginBottom: '24px'}}>
-                <div style={{fontSize: '15px', color: '#444', marginBottom: '8px'}}>ANASAYFA &gt; TÜM ÜRÜNLER</div>
-                <h2 className="baslik" style={{textAlign:'center', fontWeight:'bold', fontSize:'48px'}}>TÜM ÜRÜNLER</h2>
+                <div style={{fontSize: '15px', color: '#444', marginBottom: '8px'}}>
+                    ANASAYFA &gt; {(selectedCategory || kategoriParam) ? (selectedCategory || kategoriParam).toUpperCase() : "TÜM ÜRÜNLER"}
+                </div>
+                <h2 className="baslik" style={{textAlign:'center', fontWeight:'bold', fontSize:'48px'}}>
+                    {(selectedCategory || kategoriParam) ? (selectedCategory || kategoriParam).toUpperCase() : "TÜM ÜRÜNLER"}
+                </h2>
             </div>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px'}}>
                 <button onClick={() => setIsFilterOpen(true)} style={{fontWeight:'bold', fontSize:'18px', background:'none', border:'none', cursor:'pointer'}}>
@@ -240,11 +307,11 @@ function Tumurunler() {
                                             <input 
                                                 type="radio" 
                                                 name="kategori" 
-                                                value={category.CategoryName}
-                                                checked={selectedCategory === category.CategoryName}
-                                                onChange={() => setSelectedCategory(category.CategoryName)}
+                                                value={category.CategoriesName}
+                                                checked={selectedCategory === category.CategoriesName}
+                                                onChange={() => setSelectedCategory(category.CategoriesName)}
                                             />
-                                            {category.CategoryName}
+                                            {category.CategoriesName}
                                         </label>
                                     </div>
                                 ))}
@@ -370,9 +437,9 @@ function Tumurunler() {
             {/* Ürün grid'i */}
             <div className="products-recommendation-wrapper">
                 <div className="products-grid">
-                    {Array.from({ length: Math.ceil(filteredProducts.length / 21) }).map((_, pageIndex) => (
+                    {Array.from({ length: Math.ceil(sortedProducts.length / 21) }).map((_, pageIndex) => (
                         <div key={pageIndex} className="products-page">
-                            {filteredProducts.slice(pageIndex * 21, (pageIndex + 1) * 21).map((product, index) => (
+                            {sortedProducts.slice(pageIndex * 21, (pageIndex + 1) * 21).map((product, index) => (
                                 <div key={index} className="product-card">
                                     <div className="product-card-wrapper">
                                         <div className="product-card-image">

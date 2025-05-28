@@ -19,6 +19,7 @@
     outline: none;
     margin-right: 50px;
     border-radius: 4px;
+    margin-left: 10px;
 }
 
 .icons {
@@ -72,6 +73,14 @@
     gap: 2rem;
     margin: 0;
     padding: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.nav-menu ul::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-menu a {
@@ -131,14 +140,6 @@
     margin: 5px 0;
 }
 
-.sidebar-image {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-    margin-left: 10px;
-}
-
 .sidebar .menu-item {
     display: flex;
     justify-content: space-between;
@@ -146,6 +147,12 @@
     padding: 10px 20px;
     color: #000;
     text-decoration: none;
+    width: 100%;
+}
+
+.sidebar .menu-item span {
+    font-size: 16px;
+    font-weight: 500;
 }
 
 @media screen and (max-width: 1082px) {

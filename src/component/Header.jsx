@@ -6,6 +6,7 @@ import { FaBars } from "react-icons/fa";
 import LoginModal from './LoginModal';
 import { useUser } from '../context/UserContext';
 import UserMenu from './UserMenu';
+import axios from 'axios';
 
 function Header() {
     const [showBagMenu, setShowBagMenu] = useState(false);
@@ -40,6 +41,9 @@ function Header() {
     const [registerError, setRegisterError] = useState('');
     const [registerSuccess, setRegisterSuccess] = useState('');
     const { user, login, register } = useUser();
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -55,6 +59,27 @@ function Header() {
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
+    }, []);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get('http://localhost:5000/api/categories');
+                if (response.data.success) {
+                    setCategories(response.data.data);
+                } else {
+                    setError('Kategoriler yüklenirken bir hata oluştu');
+                }
+            } catch (error) {
+                console.error('Kategoriler yüklenirken hata:', error);
+                setError('Kategoriler yüklenirken bir hata oluştu: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategories();
     }, []);
 
     const toggleSidebar = () => {
@@ -139,7 +164,7 @@ function Header() {
                     <FaBars />
                 </button>
 
-                <div className='flex-row' style={{ flex: '0 0 auto' }}>
+                <div className='flex-row' style={{ flex: '0 0 auto' , marginRight:'10px' }}>
                     <img className="logo" src="./src/Images/logo.jpg" alt="logo" />
                     <p className='logo-text'>Lina Çanta</p>
                 </div>
@@ -147,40 +172,25 @@ function Header() {
                 {/* Masaüstü navigasyon */}
                 <nav className={`nav-menu desktop-menu ${isSidebarOpen ? 'active' : ''}`}>
                     <ul>
-                        <li><a href="/Tum_urunler" className="menu-item">TÜM ÜRÜNLER</a></li>
-                        <li className="dropdown"
-                            onMouseEnter={() => setShowBagMenu(true)}
-                            onMouseLeave={() => setShowBagMenu(false)}>
-                            <a href="/Canta" className="menu-item">ÇANTALAR</a>
-                            {showBagMenu && (
-                                <div className="dropdown-container">
-                                    <ul className="dropdown-menu">
-                                        <li>
-                                            <a href="/Canta" className="dropdown-item">
-                                                <img src="./src/Images/omuz_cantası.png" alt="Omuz Çantası" className="dropdown-image" />
-                                                <span>Omuz Çantaları</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/Canta" className="dropdown-item">
-                                                <img src="./src/Images/sırt_cantası.png" alt="Sırt Çantası" className="dropdown-image" />
-                                                <span>Sırt Çantaları</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/Canta" className="dropdown-item">
-                                                <img src="./src/Images/postacı_cantası.png" alt="Postacı Çantası" className="dropdown-image" />
-                                                <span>Postacı Çantaları</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            )}
+                        <li key="all-products-desktop">
+                            <a href="/urunler" className="menu-item">TÜM ÜRÜNLER</a>
                         </li>
-                        <li><a href="/Gozlukler" className="menu-item">GÖZLÜKLER</a></li>
-                        <li><a href="/CuzdanKartlik" className="menu-item">CÜZDAN & KARTLIK</a></li>
-                        <li><a href="/Sallar" className="menu-item">ŞALLAR</a></li>
-                        <li><a href="/Ayakkabilar" className="menu-item">KADIN AYAKKABILAR</a></li>
+                        {loading ? (
+                            <li key="loading-desktop">Yükleniyor...</li>
+                        ) : error ? (
+                            <li key="error-desktop">Hata: {error}</li>
+                        ) : (
+                            categories.map((category, index) => (
+                                <li key={`category-${category.CategoryID}-${index}`}>
+                                    <a 
+                                        href={`/urunler?kategori=${encodeURIComponent(category.CategoriesName.toLowerCase())}`} 
+                                        className="menu-item"
+                                    >
+                                        {category.CategoriesName.toUpperCase()}
+                                    </a>
+                                </li>
+                            ))
+                        )}
                     </ul>
                 </nav>
 
@@ -189,65 +199,27 @@ function Header() {
                     <button className="close-sidebar" onClick={toggleSidebar}>×</button>
                     <div className="sidebar-content">
                         <ul>
-                            <li>
-                                <a href="/Tum_urunler" className="menu-item">
+                            <li key="all-products-mobile">
+                                <a href="/urunler" className="menu-item">
                                     <span>TÜM ÜRÜNLER</span>
-                                    <img src="./src/Images/Tüm_ürünler.jpg" alt="Tüm Ürünler" className="sidebar-image" />
                                 </a>
                             </li>
-                            <li className="dropdown"
-                                onClick={() => setShowSidebarBagMenu(!showSidebarBagMenu)}>
-                                <a href="/Canta" className="menu-item">
-                                    <span>ÇANTALAR</span>
-                                    <img src="./src/Images/Çantalar.png" alt="Çantalar" className="sidebar-image" />
-                                </a>
-                                {showSidebarBagMenu && (
-                                    <ul className="sidebar-submenu">
-                                        <li>
-                                            <a href="/Canta" className="dropdown-item">
-                                                <img src="./src/Images/omuz_cantası.png" alt="Omuz Çantası" className="dropdown-image" />
-                                                <span>Omuz Çantaları</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/Canta" className="dropdown-item">
-                                                <img src="./src/Images/sırt_cantası.png" alt="Sırt Çantası" className="dropdown-image" />
-                                                <span>Sırt Çantaları</span>
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/Canta" className="dropdown-item">
-                                                <img src="./src/Images/postacı_cantası.png" alt="Postacı Çantası" className="dropdown-image" />
-                                                <span>Postacı Çantaları</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                )}
-                            </li>
-                            <li>
-                                <a href="/Gozlukler" className="menu-item">
-                                    <span>GÖZLÜKLER</span>
-                                    <img src="./src/Images/gözlükler.png" alt="Gözlükler" className="sidebar-image" />
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/Ayakkabilar" className="menu-item">
-                                    <span>AYAKKABI MODELLERİ</span>
-                                    <img src="./src/Images/ayakkabı.png" alt="Şal Modelleri" className="sidebar-image" />
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/CuzdanKartlik" className="menu-item">
-                                    <span>CÜZDAN & KARTLIK </span>
-                                    <img src="./src/Images/cüzdan_kartlik.png" alt="Şal Modelleri" className="sidebar-image" />
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/Sallar" className="menu-item">
-                                    <span>ŞAL MODELLERİ</span>
-                                    <img src="./src/Images/şallar.png" alt="Şal Modelleri" className="sidebar-image" />
-                                </a>
-                            </li>
+                            {loading ? (
+                                <li key="loading-mobile">Yükleniyor...</li>
+                            ) : error ? (
+                                <li key="error-mobile">Hata: {error}</li>
+                            ) : (
+                                categories.map((category, index) => (
+                                    <li key={`category-mobile-${category.CategoryID}-${index}`}>
+                                        <a 
+                                            href={`/urunler?kategori=${encodeURIComponent(category.CategoriesName.toLowerCase())}`} 
+                                            className="menu-item"
+                                        >
+                                            <span>{category.CategoriesName.toUpperCase()}</span>
+                                        </a>
+                                    </li>
+                                ))
+                            )}
                         </ul>
                     </div>
                 </div>

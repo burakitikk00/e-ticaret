@@ -6,12 +6,7 @@ import Footer from './component/Footer'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
 import Tumurunler from './pages/Tumurunler'
-import Ayakkabilar from './pages/Ayakkabilar'
-import Gozlukler from './pages/Gozlukler'
-import CuzdanKartlik from './pages/CuzdanKartlik'
 import ProductDetail from './pages/ProductDetail'
-import Canta from './pages/Canta'
-import Sallar from './pages/Sallar'
 import Account from './pages/Account'
 import DashboardLayout from './pages/dashboardsayfasi/DashboardLayout'
 import UrunListeleme from './pages/dashboardsayfasi/UrunListeleme'
@@ -46,14 +41,17 @@ function App() {
             <SiteLayout>
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/Tum_urunler" element={<Tumurunler />} />
-                <Route path="/Ayakkabilar" element={<Ayakkabilar />} />
-                <Route path="/Gozlukler" element={<Gozlukler />} />
-                <Route path="/Canta" element={<Canta />} />
-                <Route path="/Sallar" element={<Sallar />} />
-                <Route path="/CuzdanKartlik" element={<CuzdanKartlik />} />
-                <Route path="/ProductDetail" element={<ProductDetail />} />
-                <Route path="/Tumurunler" element={<Tumurunler />} />
+                {/* Tüm ürünler sayfası - kategori parametresi ile */}
+                <Route path="/urunler" element={<Tumurunler />} />
+                <Route path="/urunler/:kategori" element={<Tumurunler />} />
+                {/* Eski kategori sayfalarına gelen istekleri tüm ürünler sayfasına yönlendir */}
+                <Route path="/Ayakkabilar" element={<Navigate to="/urunler?kategori=ayakkabılar" replace />} />
+                <Route path="/Canta" element={<Navigate to="/urunler?kategori=çantalar" replace />} />
+                <Route path="/Gozlukler" element={<Navigate to="/urunler?kategori=gözlükler" replace />} />
+                <Route path="/CuzdanKartlik" element={<Navigate to="/urunler?kategori=cüzdan-kartlık" replace />} />
+                <Route path="/Sallar" element={<Navigate to="/urunler?kategori=şallar" replace />} />
+                {/* Diğer sayfalar */}
+                <Route path="/ProductDetail/:id" element={<ProductDetail />} />
                 <Route path="/Account" element={<Account />} />
                 <Route path="/Siparisler" element={<Siparisler />} />
                 <Route path="/HesapOzeti" element={<HesapOzeti />} />

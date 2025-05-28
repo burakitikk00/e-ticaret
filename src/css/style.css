@@ -58,13 +58,8 @@
     width: 100%;
 }
 
-.slick-arrow,
-.slick-prev,
-.slick-next,
-.arrow-prev,
-.arrow-next {
-    /* Bu stiller artık kullanılmayacak */
-}
+
+
 
 .slick-slide {
     flex: 1;
@@ -207,12 +202,7 @@
 }
 
 @media (max-width: 768px) {
-    .slick-arrow,
-    .slick-prev,
-    .slick-next,
-    .arrow-prev,
-    .arrow-next {
-        /* Bu stiller artık kullanılmayacak */
+    
     }
 
     .products-recommendation-slider.slick-slider.slick-initialized {
@@ -223,7 +213,7 @@
         width: 2rem;
         height: 2rem;
     }
-}
+
 
 .products-recommendation-slider.slick-slider.slick-initialized {
     position: relative;
