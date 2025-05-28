@@ -665,6 +665,7 @@ const UrunListeleme = () => {
         Language: urunDil,
         IsDiscounted: indirimVar,
         ImageURL: gorseller[anaGorselIndex]?.url || '',
+        opsiyonlar: opsiyonList.filter(o => o.ad && o.ad.trim() !== '') // Sadece adı dolu olan opsiyonları gönder
       };
 
       console.log('Gönderilen ürün verisi:', productData);

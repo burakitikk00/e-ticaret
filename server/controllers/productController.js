@@ -1,4 +1,5 @@
 const { insertProduct } = require('../models/Product'); // MSSQL için yardımcı fonksiyonu import et
+const { toProductOpsiyon } = require('../models/ProductOpsiyon'); // Opsiyon ekleme fonksiyonunu import et
 
 // Ürün ekleme fonksiyonu (MSSQL)
 exports.createProduct = async (req, res) => {
@@ -15,7 +16,8 @@ exports.createProduct = async (req, res) => {
       ProductType,
       Language,
       IsDiscounted,
-      ImageURL
+      ImageURL,
+      opsiyonlar // Frontend'den gelen opsiyonlar
     } = req.body;
 
     // MSSQL ile ürün ekle
@@ -32,6 +34,15 @@ exports.createProduct = async (req, res) => {
       IsDiscounted,
       ImageURL
     });
+
+    // Eğer opsiyonlar varsa ve en az birinin adı doluysa kaydet
+    if (Array.isArray(opsiyonlar)) {
+      for (const opsiyon of opsiyonlar) {
+        if (opsiyon.ad && opsiyon.ad.trim() !== '') {
+          await toProductOpsiyon(newProduct.ProductID, opsiyon.ad, opsiyon.fiyat || null);
+        }
+      }
+    }
 
     res.status(201).json({
       success: true,
