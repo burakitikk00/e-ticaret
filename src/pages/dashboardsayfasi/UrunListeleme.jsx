@@ -127,10 +127,11 @@ const UrunListeleme = () => {
 
   // Kombinasyonları gruplamak için yardımcı fonksiyon
   const grupluKombinasyonlar = () => {
-    // varyasyon: "2-3 / Pembe" gibi
     const gruplar = {};
     varyasyonKombinasyonlari.forEach(komb => {
-      const [beden, renk] = komb.varyasyon.split(' / ');
+      // v1 ve v2 objesi varsa OptionName kullan
+      const beden = komb.v1 ? komb.v1.OptionName : (komb.varyasyon.split(' / ')[0] || '');
+      const renk = komb.v2 ? komb.v2.OptionName : (komb.varyasyon.split(' / ')[1] || '');
       if (!gruplar[beden]) gruplar[beden] = [];
       gruplar[beden].push({ ...komb, renk });
     });
@@ -443,14 +444,19 @@ const UrunListeleme = () => {
           throw new Error('API geçersiz veri formatı döndürdü');
         }
 
+        // Gelen varyasyonların secenekler alanını OptionName string dizisine çevir
+        const mapped = data.map(v => ({
+          ...v,
+          secenekler: v.secenekler.map(opt => opt.OptionName)
+        }));
         setVaryasyonlar(data);
         
         // Varyasyon adlarını ve seçeneklerini ayarla
-        const secenekler = data.map(v => v.ad);
+        const secenekler = mapped.map(v => v.ad);
         setVaryasyonSecenekleri(secenekler);
         
         const degerler = {};
-        data.forEach(v => {
+        mapped.forEach(v => {
           degerler[v.ad] = v.secenekler;
         });
         setVaryasyonDegerleri(degerler);
@@ -558,7 +564,7 @@ const UrunListeleme = () => {
     // Eğer kombinasyon ID'si varsa (yani veritabanında kayıtlıysa) API'yi güncelle
     if (kombinasyon.combinationId) {
       try {
-        const response = await fetch(`${API_BASE_URL}/variations/combinations/${kombinasyon.combinationId}`, {
+        const response = await fetch(`${API_BASE_URL}/variation-combinations/combinations/${kombinasyon.combinationId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -707,6 +713,39 @@ const UrunListeleme = () => {
         if (!categoryResponse.ok) {
           throw new Error(`Kategori kaydedilirken hata: ${categoryResult.message || categoryResponse.statusText}`);
         }
+      }
+
+      // Ürün kaydından sonra:
+      if (varyasyonKombinasyonlari.length > 0) {
+        // OptionName'den OptionID'ye mapping oluştur
+        const optionNameToId = {};
+        varyasyonlar.forEach(v => {
+          v.secenekler.forEach(opt => {
+            optionNameToId[opt.OptionName] = opt.OptionID;
+          });
+        });
+
+        const combinations = varyasyonKombinasyonlari
+          .map(komb => {
+            const [v1, v2] = komb.varyasyon.split(' / ');
+            return {
+              option1ID: optionNameToId[v1],
+              option2ID: optionNameToId[v2],
+              price: komb.fiyat === '' ? 0 : Number(komb.fiyat),
+              stock: komb.stok === '' ? 0 : Number(komb.stok),
+              imageUrl: komb.resim?.url || ''
+            };
+          })
+          .filter(komb => komb.price > 0 && komb.stock > 0);
+
+        await fetch('http://localhost:5000/api/variation-combinations/combinations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: productId,
+            combinations: combinations
+          })
+        });
       }
 
       alert('Ürün ve kategori başarıyla kaydedildi!');
@@ -1087,7 +1126,7 @@ const UrunListeleme = () => {
                       <tbody>
                         {renkler.map((komb, index) => (
                           <tr key={`kombinasyon-${beden}-${komb.renk}-${index}`}>
-                            <td data-label="Renk" style={{ padding: 8 }}>{komb.renk}</td>
+                            <td data-label="Renk" style={{ padding: 8 }}>{komb.v2 ? komb.v2.OptionName : komb.renk}</td>
                             <td data-label="Görsel" style={{ padding: 8 }}>
                               {!komb.resim ? (
                                 <button

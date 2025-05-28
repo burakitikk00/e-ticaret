@@ -20,13 +20,5 @@ router.put('/:variationId', variationController.updateVariation);
 // Varyasyon sil
 router.delete('/:variationId', variationController.deleteVariation);
 
-// Ürün varyasyon kombinasyonlarını getir
-router.get('/product/:productId/combinations', variationController.getProductVariationCombinations);
-
-// Ürün varyasyon kombinasyonu güncelle
-router.put('/combinations/:combinationId', variationController.updateProductVariationCombination);
-
-// Ürün varyasyon kombinasyonu ekle
-router.post('/combinations', variationController.addProductVariationCombination);
 
 module.exports = router; 

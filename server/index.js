@@ -9,6 +9,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const productCategoryRoutes = require('./routes/productCategoryRoutes');
+const productVariationCombinationRoutes = require('./routes/productVariationCombinationRoutes');
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/product-categories', productCategoryRoutes);
+app.use('/api/variation-combinations', productVariationCombinationRoutes);
 
 // Server başlatma
 const PORT = process.env.PORT || 5000;
