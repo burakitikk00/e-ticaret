@@ -10,6 +10,7 @@ const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const productCategoryRoutes = require('./routes/productCategoryRoutes');
 const productVariationCombinationRoutes = require('./routes/productVariationCombinationRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -53,8 +54,7 @@ app.get('/api/test', async (req, res) => {
 // Routes
 app.post('/api/auth/admin-login', adminLogin);
 app.post('/api/auth/change-password', authMiddleware, changePassword);
-
-// Varyasyon rotaları
+app.use('/api/auth', authRoutes);
 app.use('/api/variations', variationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/products', productRoutes);

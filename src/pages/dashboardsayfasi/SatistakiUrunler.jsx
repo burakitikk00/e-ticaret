@@ -132,21 +132,23 @@ const SatistakiUrunler = () => {
           setUrunler(
             sortedProducts.map(urun => ({
               id: urun.ProductID,
-              ad: urun.ProductName,
+              ad: urun.ProductName || 'İsimsiz Ürün', // Ürün adı null ise "İsimsiz Ürün" göster
               // Durumu API'den gelen Status değerine göre belirle (true: AKTİF, false/null: PASİF)
               durum: urun.Status === true ? 'AKTİF' : 'PASİF',
-              stok: urun.Stock,
-              fiyat: `${Number(urun.BasePrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ${urun.Currency}`,
-              tarih: urun.CreatedAt ? new Date(urun.CreatedAt).toLocaleDateString('tr-TR') : '',
+              stok: urun.Stock || 0, // Stok null ise 0 göster
+              fiyat: urun.BasePrice ? 
+                `${Number(urun.BasePrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ${urun.Currency || '₺'}` : 
+                '0.00 ₺', // Fiyat null ise "0.00 ₺" göster
+              tarih: urun.CreatedAt ? new Date(urun.CreatedAt).toLocaleDateString('tr-TR') : 'Belirtilmemiş', // Tarih null ise "Belirtilmemiş" göster
               // ImageURL boş veya null ise placeholder göster
-              resim: urun.ImageURL || '', // src hatasını önlemek için boş string yap
-              aciklama: urun.Description,
+              resim: urun.ImageURL || 'https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp', // Resim null ise varsayılan resim göster
+              aciklama: urun.Description || 'Açıklama belirtilmemiş', // Açıklama null ise "Açıklama belirtilmemiş" göster
               kategori: [], // Kategoriler için ayrıca API çağrısı gerekebilir
-              paraBirimi: urun.Currency,
-              kargoTipi: urun.ShippingType,
-              kargoUcreti: urun.ShippingCost || '0', // Backend modelde ShippingCost idi
-              urunTipi: urun.ProductType,
-              urunDil: urun.Language,
+              paraBirimi: urun.Currency || '₺', // Para birimi null ise "₺" göster
+              kargoTipi: urun.ShippingType || 'Belirtilmemiş', // Kargo tipi null ise "Belirtilmemiş" göster
+              kargoUcreti: urun.ShippingCost || '0', // Kargo ücreti null ise "0" göster
+              urunTipi: urun.ProductType || 'Belirtilmemiş', // Ürün tipi null ise "Belirtilmemiş" göster
+              urunDil: urun.Language || 'Türkçe', // Dil null ise "Türkçe" göster
               Status: urun.Status // Backend'den gelen Status değerini tutalım
             }))
           );
@@ -179,8 +181,8 @@ const SatistakiUrunler = () => {
                   {urun.resim ? ( // urun.resim dolu mu kontrol et
                     <img src={urun.resim} alt={urun.ad} className="satistaki-urun-resim" />
                   ) : (
-                    // Resim yoksa buraya varsayılan bir resim veya boş bir div koyabilirsin
-                     <div className="satistaki-urun-resim-placeholder">Resim Yok</div>
+                    // Resim yoksa varsayılan resmi göster
+                    <img src="https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp" alt="Varsayılan Ürün" className="satistaki-urun-resim" />
                   )}
                   <span className="satistaki-urun-adi">{urun.ad}</span>
                 </div>

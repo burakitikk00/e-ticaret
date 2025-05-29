@@ -155,7 +155,7 @@
     font-weight: 500;
 }
 
-@media screen and (max-width: 1082px) {
+@media screen and (max-width: 1500px) {
     .menu-toggle {
         display: block;
         margin-right: 15px;

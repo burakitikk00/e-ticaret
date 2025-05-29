@@ -40,10 +40,13 @@ function Header() {
     const [loginError, setLoginError] = useState('');
     const [registerError, setRegisterError] = useState('');
     const [registerSuccess, setRegisterSuccess] = useState('');
-    const { user, login, register } = useUser();
+    const { user, login, register, logout } = useUser();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [loginUsername, setLoginUsername] = useState('');
+    const [loginType, setLoginType] = useState('email');
+    const [registerUsername, setRegisterUsername] = useState('');
 
     useEffect(() => {
         const handleScroll = () => {
@@ -94,44 +97,165 @@ function Header() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        if (loginEmail && loginPassword) {
-            const result = await login(loginEmail, loginPassword);
+        console.log('=== GİRİŞ İŞLEMİ BAŞLADI ===');
+        
+        // Giriş tipine göre kontrol
+        if (loginType === 'email' && !loginEmail) {
+            setLoginError('E-posta giriniz.');
+            return;
+        }
+        
+        if (loginType === 'username' && !loginUsername) {
+            setLoginError('Kullanıcı adı giriniz.');
+            return;
+        }
+        
+        if (!loginPassword) {
+            setLoginError('Şifre giriniz.');
+            return;
+        }
+
+        const loginData = {
+            email: loginType === 'email' ? loginEmail : '',
+            username: loginType === 'username' ? loginUsername : '',
+            password: loginPassword,
+            loginType: loginType
+        };
+        
+        console.log('Giriş bilgileri:', { 
+            loginType: loginData.loginType,
+            email: loginData.email,
+            username: loginData.username,
+            passwordLength: loginData.password?.length || 0 
+        });
+        
+        try {
+            console.log('Login API çağrısı yapılıyor...');
+            const result = await login(loginData);
+            console.log('Login API yanıtı:', {
+                success: result.success,
+                error: result.error,
+                hasToken: !!result.token
+            });
+            
             if (result.success) {
+                console.log('✅ Giriş başarılı! Token alındı');
                 setLoginError('');
                 setShowLoginModal(false);
+                // Form alanlarını temizle
+                setLoginEmail('');
+                setLoginUsername('');
+                setLoginPassword('');
             } else {
-                setLoginError(result.error);
+                console.error('❌ Giriş başarısız:', {
+                    error: result.error,
+                    status: result.status
+                });
+                setLoginError(result.error || 'Giriş yapılırken bir hata oluştu');
             }
-        } else {
-            setLoginError('E-posta ve şifre giriniz.');
+        } catch (error) {
+            console.error('❌ Login API hatası:', {
+                message: error.message,
+                stack: error.stack,
+                response: error.response?.data
+            });
+            setLoginError('Giriş yapılırken beklenmeyen bir hata oluştu: ' + error.message);
         }
+        
+        console.log('=== GİRİŞ İŞLEMİ TAMAMLANDI ===');
     };
 
     const handleRegister = async (e) => {
         e.preventDefault();
-        if (!registerEmail || !registerPassword || !registerPassword2) {
-            setRegisterError('Tüm alanları doldurunuz.');
-            setRegisterSuccess('');
-            return;
-        }
-        if (registerPassword !== registerPassword2) {
-            setRegisterError('Şifreler eşleşmiyor.');
-            setRegisterSuccess('');
+        console.log('=== KAYIT İŞLEMİ BAŞLADI ===');
+        console.log('Kayıt bilgileri:', { 
+            username: registerUsername,
+            email: registerEmail,
+            passwordLength: registerPassword?.length || 0,
+            password2Length: registerPassword2?.length || 0
+        });
+
+        // Kullanıcı adı kontrolü
+        if (!registerUsername || registerUsername.length < 3) {
+            setRegisterError('Kullanıcı adı en az 3 karakter olmalıdır.');
             return;
         }
 
-        const result = await register(registerEmail, registerPassword, registerEmail.split('@')[0]);
-        if (result.success) {
-            setRegisterError('');
-            setRegisterSuccess('Kayıt başarılı! Giriş yapabilirsiniz.');
-            setTimeout(() => {
-                setIsRegister(false);
-                setRegisterSuccess('');
-            }, 1500);
-        } else {
-            setRegisterError(result.error);
-            setRegisterSuccess('');
+        // Kullanıcı adı formatı kontrolü
+        const usernameRegex = /^[a-zA-Z0-9_]+$/;
+        if (!usernameRegex.test(registerUsername)) {
+            setRegisterError('Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir.');
+            return;
         }
+
+        // E-posta kontrolü (sadece @ işareti kontrolü)
+        if (!registerEmail.includes('@')) {
+            setRegisterError('Geçerli bir e-posta adresi giriniz.');
+            return;
+        }
+
+        // Şifre uzunluğu kontrolü
+        if (registerPassword.length < 6) {
+            setRegisterError('Şifre en az 6 karakter olmalıdır.');
+            return;
+        }
+
+        if (!registerEmail || !registerPassword || !registerPassword2) {
+            setRegisterError('Tüm alanları doldurunuz.');
+            return;
+        }
+
+        if (registerPassword !== registerPassword2) {
+            setRegisterError('Şifreler eşleşmiyor.');
+            return;
+        }
+
+        try {
+            console.log('Register API çağrısı yapılıyor...');
+            const result = await register(registerEmail, registerPassword, registerUsername);
+            console.log('Register API yanıtı (tam):', JSON.stringify(result, null, 2));
+
+            if (!result) {
+                throw new Error('API yanıtı alınamadı');
+            }
+
+            if (result.success && result.userId && result.user) {
+                console.log('✅ Kayıt başarılı!', {
+                    userId: result.userId,
+                    user: result.user
+                });
+                
+                setRegisterError('');
+                setRegisterSuccess('Kayıt başarılı! Giriş yapabilirsiniz.');
+                
+                // Form alanlarını temizle
+                setRegisterEmail('');
+                setRegisterUsername('');
+                setRegisterPassword('');
+                setRegisterPassword2('');
+                
+                // Başarılı kayıt sonrası giriş formuna geç
+                setTimeout(() => {
+                    setIsRegister(false);
+                    setRegisterSuccess('');
+                    setLoginEmail(registerEmail);
+                    setLoginPassword('');
+                }, 1500);
+            } else {
+                const errorMessage = result.message || 'Kayıt işlemi tamamlanamadı';
+                console.error('❌ Kayıt başarısız:', {
+                    success: result.success,
+                    message: errorMessage,
+                    userId: result.userId,
+                    user: result.user
+                });
+                setRegisterError(errorMessage);
+            }
+        } catch (error) {
+            console.error('❌ Register API hatası:', error);
+            setRegisterError(error.message || 'Kayıt işlemi sırasında bir hata oluştu');
+        }
+        console.log('=== KAYIT İŞLEMİ TAMAMLANDI ===');
     };
 
     return (
@@ -285,18 +409,47 @@ function Header() {
                     <input className='search-input' type="text" placeholder='Ürün arayın ' />
                     
                     {user ? (
-                        <UserMenu />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span style={{ fontSize: '14px', color: '#666' }}>
+                                {user.username}
+                            </span>
+                            <button 
+                                onClick={() => {
+                                    logout();
+                                    setShowLoginModal(false);
+                                }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    color: '#666',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                <CiLogin style={{ fontSize: '20px' }} />
+                                Çıkış Yap
+                            </button>
+                        </div>
                     ) : (
-                        <CiLogin 
-                            className='icons' 
-                            style={{ 
-                                position: 'relative', 
-                                marginLeft: '10px', 
-                                marginRight: '10px', 
-                                cursor: 'pointer' 
-                            }} 
-                            onClick={() => setShowLoginModal(true)} 
-                        />
+                        <button 
+                            onClick={() => setShowLoginModal(true)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                color: '#666',
+                                fontSize: '14px'
+                            }}
+                        >
+                            <CiLogin style={{ fontSize: '20px' }} />
+                            Giriş Yap
+                        </button>
                     )}
                     
                     <LoginModal 
@@ -315,10 +468,16 @@ function Header() {
                         registerPassword2={registerPassword2}
                         setRegisterPassword2={setRegisterPassword2}
                         loginError={loginError}
+                        setLoginError={setLoginError}
                         registerError={registerError}
+                        setRegisterError={setRegisterError}
                         registerSuccess={registerSuccess}
                         handleLogin={handleLogin}
                         handleRegister={handleRegister}
+                        loginType={loginType}
+                        setLoginType={setLoginType}
+                        loginUsername={loginUsername}
+                        setLoginUsername={setLoginUsername}
                     />
 
                     <div style={{ position: 'relative', marginLeft: '10px', marginRight: '20px' }}>

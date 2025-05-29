@@ -94,9 +94,8 @@ function Cantalar() {
     };
 
     return (
-
         <div className="products-recommendation-wrapper">
-            <div class="ProductsRecommendation_products"><h2 class="baslik">ÇANTALAR</h2></div>
+            <div className="ProductsRecommendation_products"><h2 className="baslik">ÇANTALAR</h2></div>
             <Slider {...settings} className="products-recommendation-slider">
                 {products.map((product, index) => (
                     <div key={index} className="product-recommendation-slide">
@@ -113,11 +112,8 @@ function Cantalar() {
                                             </svg>
                                         </div>
                                     </div>
-
                                 </div>
-
                             </div>
-
                         </div>
                         <div className="urun-bilgi">
                             <a className="urun-baslik" href="#">{product.baslik}</a>
@@ -126,7 +122,7 @@ function Cantalar() {
                     </div>
                 ))}
             </Slider>
-            <a class="link" href="/Canta">Tümünü Gör</a>
+            <a className="link" href="/Canta">Tümünü Gör</a>
         </div>
     );
 }

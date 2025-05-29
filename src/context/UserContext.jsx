@@ -37,62 +37,83 @@ export const UserProvider = ({ children }) => {
     }, []);
 
     // Giriş işlemi
-    const login = async (email, password) => {
+    const login = async (loginData) => {
         try {
-            // BACKEND ENTEGRASYSONU:
-            // 1. API_URL + '/auth/login' endpoint'ine POST isteği atılacak
-            // 2. Token yönetimi eklenecek
-            // 3. Hata durumları detaylandırılacak
-            // 4. Rate limiting eklenecek
-            // 5. Güvenlik önlemleri artırılacak
-
-            // Geçici test kontrolü
-            const testUser = TEST_USERS.find(u => u.email === email && u.password === password);
+            console.log('Login API çağrısı yapılıyor...', { 
+                loginType: loginData.loginType,
+                email: loginData.email,
+                username: loginData.username 
+            });
             
-            if (testUser) {
-                const userData = {
-                    id: testUser.id,
-                    email: testUser.email,
-                    name: testUser.name,
-                    phone: testUser.phone,
-                    address: testUser.address
-                };
-                setUser(userData);
-                localStorage.setItem('user', JSON.stringify(userData));
-                return { success: true };
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: loginData.email,
+                    username: loginData.username,
+                    password: loginData.password,
+                    loginType: loginData.loginType
+                })
+            });
+
+            const data = await response.json();
+            console.log('Login API yanıtı:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Giriş işlemi başarısız oldu');
+            }
+
+            if (data.success && data.token && data.user) {
+                // Kullanıcı bilgilerini ve token'ı kaydet
+                setUser(data.user);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('token', data.token);
+                return { success: true, token: data.token, user: data.user };
             } else {
-                return { success: false, error: 'E-posta veya şifre hatalı' };
+                throw new Error('Geçersiz API yanıtı');
             }
         } catch (error) {
-            // BACKEND ENTEGRASYSONU:
-            // 1. API hata kodlarına göre özel mesajlar eklenecek
-            // 2. Network hataları için özel yönetim eklenecek
-            return { success: false, error: 'Giriş yapılırken bir hata oluştu' };
+            console.error('Login API hatası:', error);
+            return {
+                success: false,
+                error: error.message || 'Giriş yapılırken bir hata oluştu'
+            };
         }
     };
 
     // Kayıt işlemi
-    const register = async (email, password, name) => {
+    const register = async (email, password, username) => {
         try {
-            // BACKEND ENTEGRASYSONU:
-            // 1. API_URL + '/auth/register' endpoint'ine POST isteği atılacak
-            // 2. Email doğrulama sistemi eklenecek
-            // 3. Şifre politikası kontrolü eklenecek
-            // 4. Kullanıcı adı benzersizlik kontrolü eklenecek
-            // 5. Captcha veya benzeri güvenlik önlemleri eklenecek
+            console.log('Register API çağrısı yapılıyor...', { email, username });
+            
+            const response = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password, username })
+            });
 
-            // Geçici test kontrolü
-            if (TEST_USERS.some(u => u.email === email)) {
-                return { success: false, error: 'Bu e-posta adresi zaten kayıtlı' };
+            const data = await response.json();
+            console.log('Register API yanıtı:', data);
+
+            if (!response.ok) {
+                // Kullanıcı adı veya email zaten kullanımda hatası için özel mesaj
+                if (data.message?.includes('kullanımda')) {
+                    throw new Error(data.message);
+                }
+                throw new Error(data.message || 'Kayıt işlemi başarısız oldu');
             }
 
-            // Test için başarılı kayıt simülasyonu
-            return { success: true };
+            return data;
         } catch (error) {
-            // BACKEND ENTEGRASYSONU:
-            // 1. API hata kodlarına göre özel mesajlar eklenecek
-            // 2. Validation hataları için özel yönetim eklenecek
-            return { success: false, error: 'Kayıt olurken bir hata oluştu' };
+            console.error('Register API hatası:', error);
+            return {
+                success: false,
+                message: error.message || 'Kayıt olurken bir hata oluştu'
+            };
         }
     };
 

@@ -78,7 +78,7 @@ const VaryasyonAyarlar = () => {
   // Varyasyon sil
   const handleVaryasyonSil = async (index) => {
     try {
-      await axios.delete(`${API_URL}/variations/${varyasyonlar[index].VariationID}`);
+      const response = await axios.delete(`${API_URL}/variations/${varyasyonlar[index].VariationID}`);
       setVaryasyonlar(varyasyonlar.filter((_, i) => i !== index));
       if (modalVaryasyonIndex === index) {
         setModalAcik(false);
@@ -87,20 +87,42 @@ const VaryasyonAyarlar = () => {
       }
     } catch (error) {
       console.error('Varyasyon silinirken hata:', error);
-      alert('Varyasyon silinirken bir hata oluştu!');
+      
+      // Özel hata mesajları
+      let hataMesaji = 'Varyasyon silinirken bir hata oluştu!';
+      
+      if (error.response?.data?.message?.includes('REFERENCE constraint')) {
+        hataMesaji = 'Bu varyasyon şu anda ürünlerde kullanılıyor. Varyasyonu silmek için önce bu varyasyonu kullanan ürünlerin varyasyon bilgilerini kaldırmanız gerekiyor.';
+      } else if (error.response?.data?.message) {
+        hataMesaji = error.response.data.message;
+      } else if (error.message) {
+        hataMesaji = error.message;
+      }
+
+      // Uyarı mesajını göster
+      if (window.confirm(hataMesaji + '\n\nÜrünlerdeki varyasyon bilgilerini görüntülemek ister misiniz?')) {
+        // Burada ürünler sayfasına yönlendirme yapılabilir
+        // Örnek: window.location.href = '/urunler';
+        alert('Ürünler sayfasına yönlendirileceksiniz. Lütfen önce bu varyasyonu kullanan ürünlerin varyasyon bilgilerini güncelleyin.');
+      }
     }
   };
 
   // Varyasyon adını kaydet
   const handleVaryasyonKaydet = async (index) => {
+    if (!duzenlenenVaryasyonAdi.trim()) return;
     try {
       const response = await axios.put(`${API_URL}/variations/${varyasyonlar[index].VariationID}`, {
         ad: duzenlenenVaryasyonAdi,
-        secenekler: varyasyonlar[index].secenekler
+        secenekler: varyasyonlar[index].secenekler || []
       });
-      const yeni = [...varyasyonlar];
-      yeni[index] = response.data;
-      setVaryasyonlar(yeni);
+      
+      // Güncellenmiş varyasyonu state'e ekle
+      const yeniVaryasyonlar = [...varyasyonlar];
+      yeniVaryasyonlar[index] = response.data;
+      setVaryasyonlar(yeniVaryasyonlar);
+      
+      // Düzenleme modunu kapat
       setDuzenlenenVaryasyon(null);
       setDuzenlenenVaryasyonAdi('');
     } catch (error) {
@@ -154,17 +176,66 @@ const VaryasyonAyarlar = () => {
 
   // Modalda değişiklikleri kaydet
   const handleModalKaydet = async () => {
+    if (!modalVaryasyon || !modalVaryasyon.ad.trim()) {
+      alert('Varyasyon adı boş olamaz!');
+      return;
+    }
+    
     try {
-      const response = await axios.put(`${API_URL}/variations/${varyasyonlar[modalVaryasyonIndex].VariationID}`, modalVaryasyon);
-      const yeni = [...varyasyonlar];
-      yeni[modalVaryasyonIndex] = response.data;
-      setVaryasyonlar(yeni);
+      // Seçenekleri temizle (boş olanları kaldır)
+      const temizSecenekler = modalVaryasyon.secenekler
+        .filter(secenek => secenek && secenek.trim())
+        .map(secenek => secenek.trim());
+
+      console.log('Gönderilecek veri:', {
+        ad: modalVaryasyon.ad,
+        secenekler: temizSecenekler
+      });
+
+      const response = await axios.put(
+        `${API_URL}/variations/${varyasyonlar[modalVaryasyonIndex].VariationID}`,
+        {
+          ad: modalVaryasyon.ad.trim(),
+          secenekler: temizSecenekler
+        }
+      );
+
+      console.log('Sunucu yanıtı:', response.data);
+
+      if (!response.data || !response.data.VariationID) {
+        throw new Error('Sunucudan geçersiz yanıt alındı');
+      }
+
+      // Güncellenmiş varyasyonu state'e ekle
+      const yeniVaryasyonlar = [...varyasyonlar];
+      yeniVaryasyonlar[modalVaryasyonIndex] = response.data;
+      setVaryasyonlar(yeniVaryasyonlar);
+
+      // Modalı kapat
       setModalAcik(false);
       setModalVaryasyon(null);
       setModalVaryasyonIndex(null);
+      setYeniSecenek('');
     } catch (error) {
       console.error('Varyasyon güncellenirken hata:', error);
-      alert('Varyasyon güncellenirken bir hata oluştu!');
+      
+      // Özel hata mesajları
+      let hataMesaji = 'Varyasyon güncellenirken bir hata oluştu!';
+      
+      if (error.response?.data?.message?.includes('REFERENCE constraint')) {
+        hataMesaji = 'Bu varyasyon şu anda ürünlerde kullanılıyor. Varyasyonu güncellemek için önce bu varyasyonu kullanan ürünlerin varyasyon bilgilerini kaldırmanız gerekiyor.';
+      } else if (error.response?.data?.message) {
+        hataMesaji = error.response.data.message;
+      } else if (error.message) {
+        hataMesaji = error.message;
+      }
+
+      // Uyarı mesajını göster
+      if (window.confirm(hataMesaji + '\n\nÜrünlerdeki varyasyon bilgilerini görüntülemek ister misiniz?')) {
+        // Burada ürünler sayfasına yönlendirme yapılabilir
+        // Örnek: window.location.href = '/urunler';
+        alert('Ürünler sayfasına yönlendirileceksiniz. Lütfen önce bu varyasyonu kullanan ürünlerin varyasyon bilgilerini güncelleyin.');
+      }
     }
   };
 

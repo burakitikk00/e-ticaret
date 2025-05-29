@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
+import axios from 'axios';
 import '../css/style.css'
 
 function CokSatilan() {
-    // Özel ok bileşenlerini ayrı fonksiyonlar olarak tanımlıyoruz
+    // Ok bileşenleri
     const NextArrow = ({ onClick }) => (
         <button className="slick-arrow slick-next" onClick={onClick} aria-label="Next" type="button">
             <div className="arrow-next">
@@ -24,56 +25,24 @@ function CokSatilan() {
         </button>
     );
 
-    const [products, setProducts] = useState([
-        {
-            id: 1,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 1",
-            fiyat: "₺999.90"
-        },
-        {
-            id: 2,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 2",
-            fiyat: "₺899.90"
-        },
-        {
-            id: 3,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 3",
-            fiyat: "₺799.90"
-        },
-        {
-            id: 4,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 4",
-            fiyat: "₺699.90"
-        },
-        {
-            id: 5,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 5",
-            fiyat: "₺599.90"
-        },
-        {
-            id: 6,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 6",
-            fiyat: "₺499.90"
-        },
-        {
-            id: 7,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 7",
-            fiyat: "₺499.90"
-        },
-        {
-            id: 8,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 8",
-            fiyat: "₺499.90"
-        }
-    ]);
+    // Ürünler state'i
+    const [products, setProducts] = useState([]);
+
+    // Çok satan ürünleri veritabanından çek
+    useEffect(() => {
+        const fetchTopProducts = async () => {
+            try {
+                // "kategori=çok satanlar" parametresiyle ürünleri çekiyoruz
+                const response = await axios.get('http://localhost:5000/api/products?kategori=çok%20satılanlar');
+                if (response.data.success) {
+                    setProducts(response.data.products);
+                }
+            } catch (error) {
+                console.error('Çok satanlar yüklenirken hata:', error);
+            }
+        };
+        fetchTopProducts();
+    }, []);
 
     const settings = {
         dots: false,
@@ -94,16 +63,15 @@ function CokSatilan() {
     };
 
     return (
-
         <div className="products-recommendation-wrapper">
-            <div class="ProductsRecommendation_products"><h2 class="baslik">ÇOK SATILANLAR</h2></div>
+            <div className="ProductsRecommendation_products"><h2 className="baslik">ÇOK SATANLAR</h2></div>
             <Slider {...settings} className="products-recommendation-slider">
                 {products.map((product, index) => (
                     <div key={index} className="product-recommendation-slide">
                         <div className="product-card">
-                            <div className="product-card-wrapper">
+                            <div className="product-card-wrapper">  
                                 <div className="product-card-image">
-                                    <img src={product.resim} alt={product.baslik} />
+                                    <img src={product.resim || product.ImageURL} alt={product.baslik || product.ProductName} />
                                     <div className="hover-detay">
                                         <button type="submit" className="sepete-ekle-btn">SEPETE EKLE</button>
                                         <div className="urun-incele">
@@ -113,22 +81,17 @@ function CokSatilan() {
                                             </svg>
                                         </div>
                                     </div>
-
                                 </div>
-
                             </div>
-
                         </div>
                         <div className="urun-bilgi">
-                            <a className="urun-baslik" href="#">{product.baslik}</a>
-                            <span className="urun-fiyat">{product.fiyat}</span>
+                            <a className="urun-baslik" href="#">{product.baslik || product.ProductName}</a>
+                            <span className="urun-fiyat">{product.fiyat || (product.BasePrice + ' ' + (product.Currency || '₺'))}</span>
                         </div>
                     </div>
-
-
                 ))}
             </Slider>
-            <a class="link" href="/yeni-gelenler">Tümünü Gör</a>
+            <a className="link" href="/urunler?kategori=çok%20satılanlar">Tümünü Gör</a>
         </div>
     );
 }

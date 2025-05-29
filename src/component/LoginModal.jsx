@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../css/LoginModal.css';
 
 function LoginModal({ 
@@ -17,18 +17,31 @@ function LoginModal({
     registerPassword2,
     setRegisterPassword2,
     loginError,
+    setLoginError,
     registerError,
+    setRegisterError,
     registerSuccess,
     handleLogin,
-    handleRegister 
+    handleRegister,
+    loginType,
+    setLoginType,
+    loginUsername,
+    setLoginUsername
 }) {
+    const [registerUsername, setRegisterUsername] = useState('');
+
     return (
         showLoginModal && (
             <div id="login-modal-overlay">
                 <div id="login-modal-container">
                     <button 
                         id="login-modal-close" 
-                        onClick={() => setShowLoginModal(false)}
+                        onClick={() => {
+                            setShowLoginModal(false);
+                            setLoginError('');
+                            setRegisterError('');
+                            setRegisterSuccess('');
+                        }}
                     >
                         &times;
                     </button>
@@ -38,18 +51,62 @@ function LoginModal({
                     
                     {!isRegister ? (
                         <form onSubmit={handleLogin} id="login-form">
-                            <input 
-                                type="email" 
-                                placeholder="E-posta" 
-                                value={loginEmail} 
-                                onChange={e => setLoginEmail(e.target.value)} 
-                                className="login-input"
-                            />
+                            {/* Giriş tipi seçimi */}
+                            <div className="login-type-selector">
+                                <button 
+                                    type="button"
+                                    className={loginType === 'email' ? 'active' : ''}
+                                    onClick={() => {
+                                        setLoginType('email');
+                                        setLoginError('');
+                                    }}
+                                >
+                                    E-posta ile Giriş
+                                </button>
+                                <button 
+                                    type="button"
+                                    className={loginType === 'username' ? 'active' : ''}
+                                    onClick={() => {
+                                        setLoginType('username');
+                                        setLoginError('');
+                                    }}
+                                >
+                                    Kullanıcı Adı ile Giriş
+                                </button>
+                            </div>
+
+                            {/* Giriş formu */}
+                            {loginType === 'email' ? (
+                                <input 
+                                    type="text" 
+                                    placeholder="E-posta" 
+                                    value={loginEmail} 
+                                    onChange={e => {
+                                        setLoginEmail(e.target.value);
+                                        setLoginError('');
+                                    }}
+                                    className="login-input"
+                                />
+                            ) : (
+                                <input 
+                                    type="text" 
+                                    placeholder="Kullanıcı Adı" 
+                                    value={loginUsername} 
+                                    onChange={e => {
+                                        setLoginUsername(e.target.value);
+                                        setLoginError('');
+                                    }}
+                                    className="login-input"
+                                />
+                            )}
                             <input 
                                 type="password" 
                                 placeholder="Şifre" 
                                 value={loginPassword} 
-                                onChange={e => setLoginPassword(e.target.value)} 
+                                onChange={e => {
+                                    setLoginPassword(e.target.value);
+                                    setLoginError('');
+                                }}
                                 className="login-input"
                             />
                             {loginError && <div className="login-error">{loginError}</div>}
@@ -72,11 +129,24 @@ function LoginModal({
                     ) : (
                         <form onSubmit={handleRegister} id="register-form">
                             <input 
-                                type="email" 
+                                type="text" 
+                                placeholder="Kullanıcı Adı" 
+                                value={registerUsername} 
+                                onChange={e => setRegisterUsername(e.target.value)} 
+                                className="login-input"
+                                required
+                                minLength={3}
+                                maxLength={20}
+                                pattern="[a-zA-Z0-9_]+"
+                                title="Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir"
+                            />
+                            <input 
+                                type="text" 
                                 placeholder="E-posta" 
                                 value={registerEmail} 
                                 onChange={e => setRegisterEmail(e.target.value)} 
                                 className="login-input"
+                                required
                             />
                             <input 
                                 type="password" 
@@ -84,6 +154,8 @@ function LoginModal({
                                 value={registerPassword} 
                                 onChange={e => setRegisterPassword(e.target.value)} 
                                 className="login-input"
+                                required
+                                minLength={6}
                             />
                             <input 
                                 type="password" 
@@ -91,6 +163,7 @@ function LoginModal({
                                 value={registerPassword2} 
                                 onChange={e => setRegisterPassword2(e.target.value)} 
                                 className="login-input"
+                                required
                             />
                             {registerError && <div className="login-error">{registerError}</div>}
                             {registerSuccess && <div className="login-success">{registerSuccess}</div>}

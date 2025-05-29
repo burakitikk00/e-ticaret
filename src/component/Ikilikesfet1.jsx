@@ -6,44 +6,44 @@ function Ikilikesfet1() {
             <div>
                 {/* İkili Keşfet Bölümü */}
                 <div id="ikili-kesfet">
-                    <section class="ikili-kesfet-bolumu">
-                        <div class="ikili-kesfet-kapsayici">
+                    <section className="ikili-kesfet-bolumu">
+                        <div className="ikili-kesfet-kapsayici">
 
                             {/* Sol Keşfet Kartı - Gözlük */}
-                            <div class="kesfet-karti">
-                                <div class="kesfet-karti-icerik">
-                                    <div class="resim-alani">
+                            <div className="kesfet-karti">
+                                <div className="kesfet-karti-icerik">
+                                    <div className="resim-alani">
                                         <img
                                             alt="Gözlük Koleksiyonu"
                                             src="./src/Images/ayakkabı_kesfet.png"
-                                            class="kesfet-resim"
+                                            className="kesfet-resim"
                                             loading="lazy"
                                         />
                                     </div>
-                                    <a href="/Ayakkabilar" class="kesfet-link">
-                                        <div class="kesfet-metin">
-                                            <p class="alt-baslik">Keşfet</p>
-                                            <p class="ana-baslik">ayakkabı Koleksiyonu</p>
+                                    <a href="/Ayakkabilar" className="kesfet-link">
+                                        <div className="kesfet-metin">
+                                            <p className="alt-baslik">Keşfet</p>
+                                            <p className="ana-baslik">ayakkabı Koleksiyonu</p>
                                         </div>
                                     </a>
                                 </div>
                             </div>
 
                             {/* Sağ Keşfet Kartı - Çanta */}
-                            <div class="kesfet-karti">
-                                <div class="kesfet-karti-icerik">
-                                    <div class="resim-alani">
+                            <div className="kesfet-karti">
+                                <div className="kesfet-karti-icerik">
+                                    <div className="resim-alani">
                                         <img
                                             alt="Şal Koleksiyonu"
                                             src="./src/Images/sal_kesfet.png"
-                                            class="kesfet-resim"
+                                            className="kesfet-resim"
                                             loading="lazy"
                                         />
                                     </div>
-                                    <a href="/Sallar" class="kesfet-link">
-                                        <div class="kesfet-metin">
-                                            <p class="alt-baslik">Keşfet</p>
-                                            <p class="ana-baslik">şal Koleksiyonu</p>
+                                    <a href="/Sallar" className="kesfet-link">
+                                        <div className="kesfet-metin">
+                                            <p className="alt-baslik">Keşfet</p>
+                                            <p className="ana-baslik">şal Koleksiyonu</p>
                                         </div>
                                     </a>
                                 </div>
