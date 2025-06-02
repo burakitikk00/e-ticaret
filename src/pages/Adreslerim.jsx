@@ -1,24 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "../css/Adreslerim.css";
-
-// Türkiye'deki iller ve ilçeler
-const iller = [
-  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin", "Aydın", "Balıkesir",
-  "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli",
-  "Diyarbakır", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari",
-  "Hatay", "Isparta", "Mersin", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir",
-  "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş", "Nevşehir",
-  "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Tekirdağ", "Tokat",
-  "Trabzon", "Tunceli", "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
-  "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce"
-];
-
-const ilceler = {
-  "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Avcılar", "Bağcılar", "Bahçelievler", "Bakırköy", "Başakşehir", "Bayrampaşa", "Beşiktaş", "Beykoz", "Beylikdüzü", "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Fatih", "Gaziosmanpaşa", "Güngören", "Kadıköy", "Kağıthane", "Kartal", "Küçükçekmece", "Maltepe", "Pendik", "Sancaktepe", "Sarıyer", "Silivri", "Sultanbeyli", "Sultangazi", "Şile", "Şişli", "Tuzla", "Ümraniye", "Üsküdar", "Zeytinburnu"],
-  "Ankara": ["Altındağ", "Çankaya", "Etimesgut", "Keçiören", "Mamak", "Sincan", "Yenimahalle", "Gölbaşı", "Polatlı", "Beypazarı", "Kahramankazan", "Söğütözü"],
-  "İzmir": ["Konak", "Karşıyaka", "Bornova", "Buca", "Çiğli", "Gaziemir", "Karabağlar", "Menemen", "Torbalı", "Urla"],
-  // Diğer illerin ilçeleri de eklenebilir
-};
 
 const emptyAddress = {
   baslik: "",
@@ -34,10 +16,51 @@ const emptyAddress = {
 };
 
 const Adreslerim = () => {
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addresses, setAddresses] = useState([]);
+  // İller ve ilçeler için state'ler
+  const [iller, setIller] = useState([]); // Tüm iller
+  const [ilceler, setIlceler] = useState([]); // Seçilen ile ait ilçeler
   const [newAddress, setNewAddress] = useState(emptyAddress);
+  const [addresses, setAddresses] = useState([]);
+  const [showAddressForm, setShowAddressForm] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
+
+  // Sayfa ilk açıldığında illeri veritabanından çek
+  useEffect(() => {
+    axios.get("/api/sehirler")
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setIller(res.data);
+          console.log("[İller] Veritabanından gelen iller:", res.data);
+        } else {
+          console.error("[İller] Beklenen array gelmedi, gelen veri:", res.data);
+        }
+      })
+      .catch(err => console.error("[İller] Çekilemedi:", err));
+  }, []);
+
+  // İl değiştiğinde ilçeleri veritabanından çek
+  useEffect(() => {
+    if (newAddress.il) {
+      console.log("[İl Seçimi] Seçilen il:", newAddress.il);
+      axios.get(`/api/ilceler/${newAddress.il}`)
+        .then(res => {
+          if (Array.isArray(res.data)) {
+            setIlceler(res.data);
+            console.log(`[İlçeler] ${newAddress.il} için gelen ilçeler:`, res.data);
+          } else {
+            setIlceler([]);
+            console.error(`[İlçeler] ${newAddress.il} için array gelmedi, gelen veri:`, res.data);
+          }
+        })
+        .catch(err => {
+          setIlceler([]);
+          console.error(`[İlçeler] ${newAddress.il} ilçeleri çekilemedi:`, err);
+        });
+    } else {
+      setIlceler([]);
+      console.log("[İlçeler] İl seçilmedi, ilçe listesi sıfırlandı.");
+    }
+  }, [newAddress.il]);
 
   // Telefon numarası formatı için yardımcı fonksiyon
   const formatPhoneNumber = (value) => {
@@ -73,6 +96,7 @@ const Adreslerim = () => {
 
   const handleIlChange = (e) => {
     setNewAddress({ ...newAddress, il: e.target.value, ilce: "" });
+    console.log("[İl Seçimi] Kullanıcı yeni il seçti:", e.target.value);
   };
 
   const handleAddressSave = (e) => {
@@ -169,16 +193,16 @@ const Adreslerim = () => {
                 <label>İl *
                   <select name="il" value={newAddress.il} onChange={handleIlChange} required>
                     <option value="">İl Seçiniz</option>
-                    {iller.map((il) => (
-                      <option key={il} value={il}>{il}</option>
+                    {iller.map(il => (
+                      <option key={il.id} value={il.SehirAd}>{il.SehirAd}</option>
                     ))}
                   </select>
                 </label>
                 <label>İlçe *
                   <select name="ilce" value={newAddress.ilce} onChange={handleAddressChange} required disabled={!newAddress.il}>
                     <option value="">İlçe Seçiniz</option>
-                    {newAddress.il && ilceler[newAddress.il]?.map((ilce) => (
-                      <option key={ilce} value={ilce}>{ilce}</option>
+                    {ilceler.map(ilce => (
+                      <option key={ilce.Id} value={ilce.Name}>{ilce.Name}</option>
                     ))}
                   </select>
                 </label>

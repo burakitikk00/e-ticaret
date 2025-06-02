@@ -65,6 +65,10 @@ app.use('/api/variation-combinations', productVariationCombinationRoutes);
 // Kullanıcı bilgilerini güncelleme endpoint'i
 app.put('/api/users/update', authMiddleware, updateUserInfo);
 
+// Route'ları ekle
+app.use('/api/sehirler', require('./routes/sehirler'));
+app.use('/api/ilceler', require('./routes/ilceler'));
+
 // Server başlatma
 const PORT = process.env.PORT || 5000;
 
