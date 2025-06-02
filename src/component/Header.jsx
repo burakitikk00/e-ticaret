@@ -7,8 +7,10 @@ import LoginModal from './LoginModal';
 import { useUser } from '../context/UserContext';
 import UserMenu from './UserMenu';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Header() {
+    const navigate = useNavigate();
     const [showBagMenu, setShowBagMenu] = useState(false);
     const [isSticky, setIsSticky] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -122,13 +124,6 @@ function Header() {
             loginType: loginType
         };
         
-        console.log('Giriş bilgileri:', { 
-            loginType: loginData.loginType,
-            email: loginData.email,
-            username: loginData.username,
-            passwordLength: loginData.password?.length || 0 
-        });
-        
         try {
             console.log('Login API çağrısı yapılıyor...');
             const result = await login(loginData);
@@ -146,6 +141,8 @@ function Header() {
                 setLoginEmail('');
                 setLoginUsername('');
                 setLoginPassword('');
+                // Account sayfasına yönlendir
+                navigate('/account');
             } else {
                 console.error('❌ Giriş başarısız:', {
                     error: result.error,
@@ -410,7 +407,18 @@ function Header() {
                     
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontSize: '14px', color: '#666' }}>
+                            <span 
+                                onClick={() => navigate('/account')} 
+                                style={{ 
+                                    fontSize: '14px', 
+                                    color: '#666',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    ':hover': {
+                                        color: '#333'
+                                    }
+                                }}
+                            >
                                 {user.username}
                             </span>
                             <button 

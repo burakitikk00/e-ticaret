@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { config, sql, testConnection } = require('./config/db.config');
-const { adminLogin, changePassword } = require('./controllers/authController');
+const { adminLogin, login, register, changePassword, updateUserInfo } = require('./controllers/authController');
 const authMiddleware = require('./middleware/auth');
 const variationRoutes = require('./routes/variationRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
@@ -61,6 +61,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/product-categories', productCategoryRoutes);
 app.use('/api/variation-combinations', productVariationCombinationRoutes);
+
+// Kullanıcı bilgilerini güncelleme endpoint'i
+app.put('/api/users/update', authMiddleware, updateUserInfo);
 
 // Server başlatma
 const PORT = process.env.PORT || 5000;

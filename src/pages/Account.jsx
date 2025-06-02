@@ -7,7 +7,6 @@ import Adreslerim from "./Adreslerim";
 
 const menuItems = [
   { key: "kisisel", label: "KİŞİSEL BİLGİLERİM" },
-  { key: "favori", label: "FAVORİ ÜRÜNLER" },
   { key: "adreslerim", label: "ADRESLERİM" },
   { key: "siparislerim", label: "SİPARİŞLERİM" },
 ];
@@ -36,13 +35,13 @@ const emptyAddress = {
 const Account = () => {
   const { user, updateUserInfo } = useUser();
   const navigate = useNavigate();
-  const [selectedMenu, setSelectedMenu] = useState("siparislerim");
+  const [selectedMenu, setSelectedMenu] = useState("kisisel");
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    phone: '',
-    address: ''
+    phone: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -66,10 +65,10 @@ const Account = () => {
 
     // Kullanıcı bilgilerini form'a yükle
     setFormData({
-      name: user.name || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       email: user.email || '',
-      phone: user.phone || '',
-      address: user.address || ''
+      phone: user.phoneNumber || ''
     });
   }, [user, navigate]);
 
@@ -87,12 +86,18 @@ const Account = () => {
     setSuccess('');
 
     try {
-      const result = await updateUserInfo(formData);
+      const result = await updateUserInfo({
+        FirstName: formData.firstName,
+        LastName: formData.lastName,
+        PhoneNumber: formData.phone,
+        email: formData.email
+      });
+      
       if (result.success) {
         setSuccess('Bilgileriniz başarıyla güncellendi');
         setIsEditing(false);
       } else {
-        setError(result.error);
+        setError(result.error || 'Bilgiler güncellenirken bir hata oluştu');
       }
     } catch (err) {
       setError('Bilgiler güncellenirken bir hata oluştu');
@@ -165,6 +170,23 @@ const Account = () => {
     }
   };
 
+  const handleEditClick = (e) => {
+    e.preventDefault(); // Form submit'i engelle
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = (e) => {
+    e.preventDefault(); // Form submit'i engelle
+    setIsEditing(false);
+    // Form verilerini sıfırla
+    setFormData({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      phone: user.phoneNumber || ''
+    });
+  };
+
   // Menüye göre içerik render et
   const renderContent = () => {
     switch (selectedMenu) {
@@ -177,13 +199,28 @@ const Account = () => {
 
             <form onSubmit={handleSubmit} className="account-form">
               <div className="form-group">
-                <label>Ad Soyad</label>
+                <label>Ad</label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleChange}
                   disabled={!isEditing}
+                  placeholder="Adınız"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Soyad</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="Soyadınız"
+                  required
                 />
               </div>
 
@@ -195,6 +232,8 @@ const Account = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={!isEditing}
+                  placeholder="E-posta adresiniz"
+                  required
                 />
               </div>
 
@@ -206,17 +245,10 @@ const Account = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   disabled={!isEditing}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Adres</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  rows="3"
+                  placeholder="Telefon numaranız"
+                  pattern="[0-9]{10}"
+                  title="Lütfen 10 haneli telefon numaranızı giriniz"
+                  required
                 />
               </div>
 
@@ -225,7 +257,7 @@ const Account = () => {
                   <button 
                     type="button" 
                     className="edit-button"
-                    onClick={() => setIsEditing(true)}
+                    onClick={handleEditClick}
                   >
                     Düzenle
                   </button>
@@ -240,15 +272,7 @@ const Account = () => {
                     <button 
                       type="button" 
                       className="cancel-button"
-                      onClick={() => {
-                        setIsEditing(false);
-                        setFormData({
-                          name: user.name || '',
-                          email: user.email || '',
-                          phone: user.phone || '',
-                          address: user.address || ''
-                        });
-                      }}
+                      onClick={handleCancelClick}
                     >
                       İptal
                     </button>
@@ -258,8 +282,6 @@ const Account = () => {
             </form>
           </div>
         );
-      case "favori":
-        return <div>Favori Ürünler burada görünecek.</div>;
       case "adreslerim":
         return <Adreslerim />;
       case "siparislerim":

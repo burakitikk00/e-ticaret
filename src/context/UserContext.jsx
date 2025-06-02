@@ -22,6 +22,9 @@ const TEST_USERS = [
     }
 ];
 
+// API URL tanımı
+const API_URL = 'http://localhost:5000/api';
+
 // Context Provider bileşeni
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -131,26 +134,36 @@ export const UserProvider = ({ children }) => {
     // Kullanıcı bilgilerini güncelleme
     const updateUserInfo = async (userData) => {
         try {
-            // BACKEND ENTEGRASYSONU:
-            // 1. API_URL + '/users/:id' endpoint'ine PUT isteği atılacak
-            // 2. Token kontrolü eklenecek
-            // 3. Validation kontrolleri eklenecek
-            // 4. Dosya yükleme desteği eklenecek (profil fotoğrafı vb.)
-            // 5. Audit log eklenecek
+            // Token kontrolü
+            const token = localStorage.getItem('token');
+            if (!token) {
+                return { success: false, error: 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.' };
+            }
 
-            // Geçici test güncelleme
-            if (user) {
-                const updatedUser = { ...user, ...userData };
+            // API isteği
+            const response = await fetch(`${API_URL}/users/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(userData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Kullanıcı bilgilerini güncelle
+                const updatedUser = { ...user, ...result.user };
                 setUser(updatedUser);
                 localStorage.setItem('user', JSON.stringify(updatedUser));
                 return { success: true };
+            } else {
+                return { success: false, error: result.message || 'Bilgiler güncellenirken bir hata oluştu' };
             }
-            return { success: false, error: 'Kullanıcı bulunamadı' };
         } catch (error) {
-            // BACKEND ENTEGRASYSONU:
-            // 1. API hata kodlarına göre özel mesajlar eklenecek
-            // 2. Validation hataları için özel yönetim eklenecek
-            return { success: false, error: 'Bilgiler güncellenirken bir hata oluştu' };
+            console.error('Kullanıcı bilgileri güncelleme hatası:', error);
+            return { success: false, error: 'Sunucu bağlantı hatası' };
         }
     };
 

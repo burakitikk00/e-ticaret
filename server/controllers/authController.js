@@ -442,9 +442,79 @@ const login = async (req, res) => {
     }
 };
 
+// Kullanıcı bilgilerini güncelleme
+const updateUserInfo = async (req, res) => {
+    try {
+        const userId = req.user.userId; // JWT'den gelen kullanıcı ID'si
+        const { FirstName, LastName, PhoneNumber, email } = req.body;
+
+        // Email değişikliği varsa, yeni email'in başka kullanıcıda olup olmadığını kontrol et
+        if (email) {
+            const existingEmail = await sql.query`
+                SELECT UserID FROM dbo.Users 
+                WHERE Email = ${email} AND UserID != ${userId}
+            `;
+
+            if (existingEmail.recordset.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Bu email adresi başka bir kullanıcı tarafından kullanılıyor'
+                });
+            }
+        }
+
+        // Kullanıcı bilgilerini güncelle
+        const result = await sql.query`
+            UPDATE dbo.Users 
+            SET 
+                FirstName = ${FirstName},
+                LastName = ${LastName},
+                PhoneNumber = ${PhoneNumber},
+                Email = ${email},
+                UpdatedAt = GETDATE()
+            WHERE UserID = ${userId};
+
+            SELECT UserID, Username, Email, FirstName, LastName, PhoneNumber, UserType
+            FROM dbo.Users
+            WHERE UserID = ${userId};
+        `;
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Kullanıcı bulunamadı'
+            });
+        }
+
+        const updatedUser = result.recordset[0];
+
+        res.json({
+            success: true,
+            message: 'Kullanıcı bilgileri başarıyla güncellendi',
+            user: {
+                id: updatedUser.UserID,
+                username: updatedUser.Username,
+                email: updatedUser.Email,
+                firstName: updatedUser.FirstName,
+                lastName: updatedUser.LastName,
+                phoneNumber: updatedUser.PhoneNumber,
+                userType: updatedUser.UserType
+            }
+        });
+
+    } catch (error) {
+        console.error('Kullanıcı bilgileri güncelleme hatası:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Kullanıcı bilgileri güncellenirken bir hata oluştu'
+        });
+    }
+};
+
 module.exports = {
     adminLogin,
     changePassword,
     register,
-    login
+    login,
+    updateUserInfo
 }; 
