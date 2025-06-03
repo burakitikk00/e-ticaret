@@ -36,6 +36,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Bir hata oluştu!', error: err.message });
 });
 
+const adreslerRouter = require("../server/routes/adresler.js");
+app.use("/api/adresler", adreslerRouter);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server ${PORT} portunda çalışıyor`);

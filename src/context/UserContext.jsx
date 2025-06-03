@@ -30,12 +30,34 @@ export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Sayfa yenilendiğinde localStorage'dan kullanıcı bilgilerini kontrol et
+    // API'den güncel kullanıcı bilgisini çekip context ve localStorage'ı güncelleyen fonksiyon
+    const fetchUserFromAPI = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return null;
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setUser(data.user);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                return data.user;
+            }
+        } catch (err) {
+            console.error('Kullanıcı API ile çekilemedi:', err);
+        }
+        return null;
+    };
+
+    // Sayfa yüklendiğinde hem localStorage'dan hem de API'den kullanıcıyı kontrol et
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
+        // API'den güncel kullanıcıyı çek
+        fetchUserFromAPI();
         setLoading(false);
     }, []);
 

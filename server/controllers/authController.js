@@ -511,10 +511,43 @@ const updateUserInfo = async (req, res) => {
     }
 };
 
+// Kullanıcı kendi bilgilerini getirir
+exports.getMe = async (req, res) => {
+    try {
+        const userId = req.user.userId; // JWT'den gelen kullanıcı ID'si
+        const { sql } = require('../config/db');
+        // Kullanıcıyı veritabanında bul
+        const result = await sql.query`
+            SELECT UserID, Username, Email, FirstName, LastName, PhoneNumber
+            FROM dbo.Users
+            WHERE UserID = ${userId}
+        `;
+        if (result.recordset.length === 0) {
+            return res.status(404).json({ success: false, message: 'Kullanıcı bulunamadı' });
+        }
+        const user = result.recordset[0];
+        res.json({
+            success: true,
+            user: {
+                id: user.UserID,
+                username: user.Username,
+                email: user.Email,
+                firstName: user.FirstName,
+                lastName: user.LastName,
+                phoneNumber: user.PhoneNumber
+            }
+        });
+    } catch (err) {
+        console.error('Kullanıcı bilgisi getirilirken hata:', err);
+        res.status(500).json({ success: false, message: 'Kullanıcı bilgisi getirilemedi', error: err.message });
+    }
+};
+
 module.exports = {
     adminLogin,
     changePassword,
     register,
     login,
-    updateUserInfo
+    updateUserInfo,
+    getMe: exports.getMe
 }; 

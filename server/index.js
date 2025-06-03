@@ -68,6 +68,7 @@ app.put('/api/users/update', authMiddleware, updateUserInfo);
 // Route'ları ekle
 app.use('/api/sehirler', require('./routes/sehirler'));
 app.use('/api/ilceler', require('./routes/ilceler'));
+app.use('/api/adresler', require('./routes/adresler'));
 
 // Server başlatma
 const PORT = process.env.PORT || 5000;

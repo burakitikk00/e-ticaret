@@ -2,7 +2,7 @@ const sql = require('mssql');
 require('dotenv').config();
 
 // Veritabanı bağlantı konfigürasyonu
-const dbConfig = {
+const config = {
     server: 'DESKTOP-8IUA2EP',
     database: 'DBLinaButik',
     user: 'LinaButik',
@@ -19,12 +19,12 @@ const connectDB = async () => {
     try {
         console.log('Veritabanı bağlantısı deneniyor...');
         console.log('Bağlantı bilgileri:', {
-            server: dbConfig.server,
-            database: dbConfig.database,
-            user: dbConfig.user
+            server: config.server,
+            database: config.database,
+            user: config.user
         });
 
-        const pool = await sql.connect(dbConfig);
+        const pool = await sql.connect(config);
         console.log('Veritabanına başarıyla bağlanıldı!');
         return pool;
     } catch (err) {
@@ -37,6 +37,7 @@ const connectDB = async () => {
 };
 
 module.exports = {
+    config,
     connectDB,
     sql
 };

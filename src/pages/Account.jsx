@@ -11,13 +11,7 @@ const menuItems = [
   { key: "siparislerim", label: "SİPARİŞLERİM" },
 ];
 
-// Örnek il ve ilçe verisi
-const iller = ["İstanbul", "Ankara", "İzmir"];
-const ilceler = {
-  İstanbul: ["Kadıköy", "Beşiktaş", "Üsküdar"],
-  Ankara: ["Çankaya", "Keçiören", "Yenimahalle"],
-  İzmir: ["Konak", "Bornova", "Karşıyaka"],
-};
+
 
 const emptyAddress = {
   baslik: "",
@@ -41,7 +35,7 @@ const Account = () => {
     firstName: '',
     lastName: '',
     email: '',
-    phone: ''
+    phoneNumber: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -63,12 +57,12 @@ const Account = () => {
       return;
     }
 
-    // Kullanıcı bilgilerini form'a yükle
+    // Kullanıcı bilgilerini form'a yükle (phoneNumber küçük n ile)
     setFormData({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       email: user.email || '',
-      phone: user.phoneNumber || ''
+      phoneNumber: user.phoneNumber || ''
     });
   }, [user, navigate]);
 
@@ -86,10 +80,11 @@ const Account = () => {
     setSuccess('');
 
     try {
+      // API'ye gönderirken de phoneNumber küçük n ile
       const result = await updateUserInfo({
         FirstName: formData.firstName,
         LastName: formData.lastName,
-        PhoneNumber: formData.phone,
+        PhoneNumber: formData.phoneNumber,
         email: formData.email
       });
       
@@ -183,7 +178,7 @@ const Account = () => {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       email: user.email || '',
-      phone: user.phoneNumber || ''
+      phoneNumber: user.phoneNumber || ''
     });
   };
 
@@ -206,7 +201,7 @@ const Account = () => {
                   value={formData.firstName}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  placeholder="Adınız"
+                  placeholder={formData.firstName || "Adınız"}
                   required
                 />
               </div>
@@ -219,7 +214,7 @@ const Account = () => {
                   value={formData.lastName}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  placeholder="Soyadınız"
+                  placeholder={formData.lastName || "Soyadınız"}
                   required
                 />
               </div>
@@ -232,7 +227,7 @@ const Account = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  placeholder="E-posta adresiniz"
+                  placeholder={formData.email || "E-posta adresiniz"}
                   required
                 />
               </div>
@@ -241,11 +236,11 @@ const Account = () => {
                 <label>Telefon</label>
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  placeholder="Telefon numaranız"
+                  placeholder={formData.phoneNumber || "Telefon numaranız"}
                   pattern="[0-9]{10}"
                   title="Lütfen 10 haneli telefon numaranızı giriniz"
                   required

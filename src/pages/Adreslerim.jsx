@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosConfig"; // Axios instance'ı import et
 import "../css/Adreslerim.css";
+import { useUser } from "../context/UserContext"; // Kullanıcı context'i import edildi
 
 const emptyAddress = {
   baslik: "",
@@ -16,6 +17,9 @@ const emptyAddress = {
 };
 
 const Adreslerim = () => {
+  // Kullanıcı bilgisini context'ten alıyoruz
+  const { user } = useUser();
+
   // İller ve ilçeler için state'ler
   const [iller, setIller] = useState([]); // Tüm iller
   const [ilceler, setIlceler] = useState([]); // Seçilen ile ait ilçeler
@@ -24,9 +28,53 @@ const Adreslerim = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
 
+  // Kullanıcı bilgisi için state
+  const [userInfo, setUserInfo] = useState({ ad: "", soyad: "", telefon: "" });
+
+  // Kullanıcı bilgilerini backend'den çek
+  useEffect(() => {
+    axiosInstance.get("/api/auth/me")
+      .then(res => {
+        if (res.data && res.data.success) {
+          setUserInfo({
+            ad: res.data.user.ad || "",
+            soyad: res.data.user.soyad || "",
+            telefon: res.data.user.telefon || ""
+          });
+        }
+      })
+      .catch(err => {
+        console.error("Kullanıcı bilgileri çekilemedi:", err);
+      });
+  }, []);
+
+  // userInfo güncellendiğinde ve adres formu açık değilken, newAddress'in ad, soyad ve telefonunu otomatik doldur
+  useEffect(() => {
+    if (!showAddressForm && editIndex === null) {
+      setNewAddress(prev => ({
+        ...prev,
+        ad: userInfo.ad || "",
+        soyad: userInfo.soyad || "",
+        telefon: userInfo.telefon || ""
+      }));
+    }
+  }, [userInfo, showAddressForm, editIndex]);
+
+  // Form açıldığında, yeni adres ekleniyorsa ad/soyad/telefonu otomatik doldur
+  useEffect(() => {
+    if (showAddressForm && editIndex === null) {
+      setNewAddress(prev => ({
+        ...prev,
+        ad: userInfo.ad || "",
+        soyad: userInfo.soyad || "",
+        telefon: userInfo.telefon || ""
+      }));
+    }
+  }, [showAddressForm, editIndex, userInfo]);
+
   // Sayfa ilk açıldığında illeri veritabanından çek
   useEffect(() => {
-    axios.get("/api/sehirler")
+    axiosInstance.get("/api/sehirler")
       .then(res => {
         if (Array.isArray(res.data)) {
           setIller(res.data);
@@ -42,7 +90,7 @@ const Adreslerim = () => {
   useEffect(() => {
     if (newAddress.il) {
       console.log("[İl Seçimi] Seçilen il:", newAddress.il);
-      axios.get(`/api/ilceler/${newAddress.il}`)
+      axiosInstance.get(`/api/ilceler/${newAddress.il}`)
         .then(res => {
           if (Array.isArray(res.data)) {
             setIlceler(res.data);
@@ -61,6 +109,25 @@ const Adreslerim = () => {
       console.log("[İlçeler] İl seçilmedi, ilçe listesi sıfırlandı.");
     }
   }, [newAddress.il]);
+
+  // Adresleri veritabanından çekmek için yeni useEffect
+  useEffect(() => {
+    // Adresleri backend'den çek
+    const fetchAddresses = async () => {
+      try {
+        const res = await axiosInstance.get("/api/adresler");
+        if (res.data.success) {
+          setAddresses(res.data.addresses); // Adresleri state'e kaydet
+        } else {
+          setAddresses([]);
+        }
+      } catch (err) {
+        setAddresses([]);
+        console.error("Adresler çekilemedi:", err);
+      }
+    };
+    fetchAddresses();
+  }, [showAddressForm]); // Adres ekleme/düzenleme sonrası güncellenmesi için showAddressForm'u ekledim
 
   // Telefon numarası formatı için yardımcı fonksiyon
   const formatPhoneNumber = (value) => {
@@ -99,32 +166,75 @@ const Adreslerim = () => {
     console.log("[İl Seçimi] Kullanıcı yeni il seçti:", e.target.value);
   };
 
-  const handleAddressSave = (e) => {
+  const handleAddressSave = async (e) => {
     e.preventDefault();
-    if (editIndex !== null) {
-      const updated = [...addresses];
-      updated[editIndex] = newAddress;
-      setAddresses(updated);
-      setEditIndex(null);
-    } else {
-      setAddresses([...addresses, newAddress]);
+    // userID'yi ekle
+    const addressToSave = {
+      ...newAddress,
+      userID: user?.id // userID context'ten alınır
+    };
+    try {
+      if (editIndex !== null && addresses[editIndex]) {
+        // Düzenleme modunda ise PUT isteği at
+        const id = addresses[editIndex].id || addresses[editIndex].Id;
+        const res = await axiosInstance.put(`/api/adresler/${id}`, addressToSave);
+        if (res.data.success) {
+          // Başarıyla güncellendi, adresleri tekrar çek
+          setShowAddressForm(false);
+          setEditIndex(null);
+          setNewAddress(emptyAddress);
+        } else {
+          alert("Adres güncellenemedi!");
+        }
+      } else {
+        // Yeni adres ekle
+        const res = await axiosInstance.post("/api/adresler", addressToSave);
+        if (res.data.success) {
+          setShowAddressForm(false);
+          setNewAddress(emptyAddress);
+        } else {
+          alert("Adres kaydedilemedi!");
+        }
+      }
+    } catch (err) {
+      alert("Adres kaydedilirken/güncellenirken hata oluştu!");
+      console.error(err);
     }
-    setNewAddress(emptyAddress);
-    setShowAddressForm(false);
   };
 
   const handleEditAddress = (idx) => {
-    setNewAddress(addresses[idx]);
+    setNewAddress(addresses[idx]); // Formu seçilen adresle doldur
     setEditIndex(idx);
     setShowAddressForm(true);
   };
 
-  const handleDeleteAddress = (idx) => {
-    setAddresses(addresses.filter((_, i) => i !== idx));
-    if (editIndex === idx) {
+  const handleDeleteAddress = async (idx) => {
+    try {
+      // Adresin id'sini hem id hem Id olarak kontrol et
+      const adres = addresses[idx];
+      const id = adres.id || adres.Id;
+      if (!id) {
+        alert("Adresin id bilgisi bulunamadı, silinemiyor!");
+        return;
+      }
+      await axiosInstance.delete(`/api/adresler/${id}`);
+      // Silindikten sonra adresleri tekrar çekmek için fetchAddresses fonksiyonunu çağır
+      // showAddressForm'u tetiklemek yerine adresleri güncelle
+      const res = await axiosInstance.get("/api/adresler");
+      if (res.data.success) {
+        setAddresses(res.data.addresses);
+      }
       setShowAddressForm(false);
       setEditIndex(null);
       setNewAddress(emptyAddress);
+    } catch (err) {
+      // Hata mesajını daha açıklayıcı göster
+      if (err.response && err.response.status === 404) {
+        alert("Adres bulunamadı veya silinemedi (404)");
+      } else {
+        alert("Adres silinirken hata oluştu! Detay: " + (err.message || ""));
+      }
+      console.error(err);
     }
   };
 
