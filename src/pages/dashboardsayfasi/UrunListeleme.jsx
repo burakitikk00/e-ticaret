@@ -4,11 +4,6 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../utils/cropImage';
 import axios from 'axios';
 
-// Örnek kategori ve opsiyon verileri (ileride API'den çekilecek)
-const opsiyonlar = [
-  { ad: '', fiyat: '' },
-];
-
 // Base64 data URL'yi Blob nesnesine dönüştüren yardımcı fonksiyon
 const dataURLtoBlob = (dataurl) => {
   if (!dataurl) return null;
@@ -45,12 +40,17 @@ const UrunListeleme = () => {
   const [varyasyonlar, setVaryasyonlar] = useState([]); // API'den gelen varyasyonlar
   const [varyasyonSecenekleri, setVaryasyonSecenekleri] = useState([]); // Varyasyon adları
   const [varyasyonDegerleri, setVaryasyonDegerleri] = useState({}); // Varyasyon seçenekleri
-  const [varyasyon1, setVaryasyon1] = useState('');
-  const [varyasyon2, setVaryasyon2] = useState('');
-  const [varyasyonKombinasyonlari, setVaryasyonKombinasyonlari] = useState([]); // Her kombinasyon için resim, fiyat, stok
 
-  // Opsiyonlar için state
-  const [opsiyonList, setOpsiyonList] = useState([{ ad: '', fiyat: '' }]);
+  // Varyasyon tipi seçimleri (Dropdown için string)
+  const [secilenVaryasyon1Tipi, setSecilenVaryasyon1Tipi] = useState('');
+  const [secilenVaryasyon2Tipi, setSecilenVaryasyon2Tipi] = useState('');
+
+  // Varyasyon seçenekleri seçimleri (Checkbox için array)
+  const [secilenVaryasyon1Degerleri, setSecilenVaryasyon1Degerleri] = useState([]);
+  const [secilenVaryasyon2Degerleri, setSecilenVaryasyon2Degerleri] = useState([]);
+
+  // varyasyonKombinasyonlari state'ini tanımlıyorum (başlangıçta boş dizi)
+  const [varyasyonKombinasyonlari, setVaryasyonKombinasyonlari] = useState([]);
 
   // Accordion için açık olan bedenleri tutacak state
   const [acikBedenler, setAcikBedenler] = useState([]);
@@ -89,13 +89,16 @@ const UrunListeleme = () => {
   const anaGorselInputRef = useRef();
   const modalGorselInputRef = useRef();
 
+  // Opsiyon listesi için state
+  const [opsiyonList, setOpsiyonList] = useState([{ ad: '', fiyat: '' }]);
+
   // Varyasyon stoklarının toplamını hesapla
   const hesaplaToplamStok = useCallback(() => {
-    if (!varyasyon1 || !varyasyon2) return 0;
+    if (!secilenVaryasyon1Tipi || !secilenVaryasyon2Tipi) return 0;
     return varyasyonKombinasyonlari.reduce((toplam, komb) => {
       return toplam + (parseInt(komb.stok) || 0);
     }, 0);
-  }, [varyasyonKombinasyonlari, varyasyon1, varyasyon2]);
+  }, [varyasyonKombinasyonlari, secilenVaryasyon1Tipi, secilenVaryasyon2Tipi]);
 
   // Kategori seçimi değiştiğinde çalışır (radio button mantığı)
   const handleKategoriChange = (kategori) => {
@@ -104,7 +107,7 @@ const UrunListeleme = () => {
 
   // Opsiyon ekle
   const handleOpsiyonEkle = () => {
-    setOpsiyonList([...opsiyonList, { ad: '', fiyat: '' }]);
+    setOpsiyonList(prev => [...prev, { ad: '', fiyat: '' }]);
   };
 
   // Opsiyon güncelle
@@ -114,6 +117,11 @@ const UrunListeleme = () => {
       yeni[index][alan] = deger;
       return yeni;
     });
+  };
+
+  // Opsiyon sil
+  const handleOpsiyonSil = (index) => {
+    setOpsiyonList(prev => prev.filter((_, i) => i !== index));
   };
 
   // Accordion aç/kapa fonksiyonu
@@ -366,226 +374,77 @@ const UrunListeleme = () => {
     }
   };
 
-  // Varyasyon kombinasyonu için fiyat kontrolü
-  const handleKombinasyonFiyatChange = (index, value) => {
-    // Sadece sayısal değer ve nokta girilmesine izin ver
-    if (/^\d*\.?\d*$/.test(value)) {
-      handleKombinasyonUpdate(index, 'fiyat', value);
-    }
-  };
-
-  // Varyasyon kombinasyonu için stok kontrolü
-  const handleKombinasyonStokChange = (index, value) => {
-    // Sadece sayısal değer girilmesine izin ver
-    if (/^\d*$/.test(value)) {
-      handleKombinasyonUpdate(index, 'stok', value);
-      // Stok değiştiğinde toplam stok miktarını güncelle
-      if (varyasyon1 && varyasyon2) {
-        setStokAdedi(hesaplaToplamStok().toString());
-      }
-    }
-  };
-
-  // useEffect ile toplam stok miktarını takip et
-  useEffect(() => {
-    if (varyasyon1 && varyasyon2) {
-      setStokAdedi(hesaplaToplamStok().toString());
-    }
-  }, [varyasyonKombinasyonlari, varyasyon1, varyasyon2, hesaplaToplamStok]);
-
-  // Varyasyonları API'den getir
-  const fetchVaryasyonlar = async () => {
-    try {
-      console.log('Varyasyonlar getiriliyor...');
-      const response = await fetch(`${API_BASE_URL}/variations`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('API yanıt hatası:', errorData);
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData}`);
-      }
-
-      const data = await response.json();
-      console.log('Gelen varyasyonlar:', data);
-
-      if (!Array.isArray(data)) {
-        throw new Error('API geçersiz veri formatı döndürdü');
-      }
-
-      // Direkt API'den gelen veriyi kullan
-      setVaryasyonlar(data);
-      
-      // Varyasyon adlarını ve seçeneklerini ayarla
-      const secenekler = data.map(v => v.ad);
-      setVaryasyonSecenekleri(secenekler);
-      
-      const degerler = {};
-      data.forEach(v => {
-        degerler[v.ad] = v.secenekler;
-      });
-      setVaryasyonDegerleri(degerler);
-
-    } catch (error) {
-      console.error('Varyasyonlar getirilirken hata:', error);
-      // Hata durumunda varsayılan varyasyonları kullan
-      const varsayilanVaryasyonlar = [
-        { ad: 'Beden', secenekler: ['S', 'M', 'L', 'XL'] },
-        { ad: 'Renk', secenekler: ['Siyah', 'Beyaz', 'Kırmızı', 'Mavi'] }
-      ];
-      setVaryasyonlar(varsayilanVaryasyonlar);
-      setVaryasyonSecenekleri(varsayilanVaryasyonlar.map(v => v.ad));
-      const degerler = {};
-      varsayilanVaryasyonlar.forEach(v => {
-        degerler[v.ad] = v.secenekler;
-      });
-      setVaryasyonDegerleri(degerler);
-      // Kullanıcıya bilgi ver
-      alert(`Varyasyonlar yüklenirken bir hata oluştu: ${error.message}. Varsayılan varyasyonlar kullanılıyor.`);
-    }
-  };
-
-  // Varyasyon seçimi değiştiğinde çalışır
-  const handleVaryasyonChange = (index, value) => {
+  // Varyasyon tipi seçimi değiştiğinde çalışır (Dropdown için)
+  const handleVaryasyonTipiChange = (index, value) => {
     if (index === 1) {
-      setVaryasyon1(value);
-      if (value && varyasyon2) {
-        // Varyasyon seçildiğinde stok adedini sıfırla
-        setStokAdedi('');
-      }
+      setSecilenVaryasyon1Tipi(value);
+      setSecilenVaryasyon1Degerleri([]); // Tip değişince seçenekleri sıfırla
     }
     if (index === 2) {
-      setVaryasyon2(value);
-      if (value && varyasyon1) {
-        // Varyasyon seçildiğinde stok adedini sıfırla
-        setStokAdedi('');
-      }
+      setSecilenVaryasyon2Tipi(value);
+      setSecilenVaryasyon2Degerleri([]); // Tip değişince seçenekleri sıfırla
     }
-    // Varyasyonlar değişince kombinasyonları sıfırla
+    // Varyasyon tipleri değişince kombinasyonları sıfırla
     setVaryasyonKombinasyonlari([]);
   };
 
-  // Kombinasyonları dinamik oluştur
-  const handleKombinasyonOlustur = () => {
-    if (!varyasyon1 || !varyasyon2) return;
-    const v1Degerler = varyasyonDegerleri[varyasyon1] || [];
-    const v2Degerler = varyasyonDegerleri[varyasyon2] || [];
-    const kombinasyonlar = [];
-    v1Degerler.forEach(v1 => {
-      v2Degerler.forEach(v2 => {
-        kombinasyonlar.push({
-          varyasyon: `${v1} / ${v2}`,
-          resim: null,
-          fiyat: '',
-          stok: '',
-        });
-      });
-    });
-    setVaryasyonKombinasyonlari(kombinasyonlar);
-  };
+  // Varyasyon seçeneği (değeri) seçimi değiştiğinde çalışır (Checkbox için)
+  const handleVaryasyonDegerChange = (varyasyonIndex, deger) => {
+    if (varyasyonIndex === 1) {
+      setSecilenVaryasyon1Degerleri(prev => {
+        // Seçiliyse kaldır, değilse ekle
+        const yeniVaryasyon1 = prev.find(item => item.OptionID === deger.OptionID)
+          ? prev.filter(item => item.OptionID !== deger.OptionID)
+          : [...prev, deger];
 
-  // Kombinasyon güncelleme fonksiyonu
-  const handleKombinasyonUpdate = async (index, alan, deger) => {
-    const kombinasyon = varyasyonKombinasyonlari[index];
-    
-    // Önce state'i güncelle
-    setVaryasyonKombinasyonlari(prev => {
-      const yeni = [...prev];
-      yeni[index][alan] = deger;
-      return yeni;
-    });
-    
-    // Eğer kombinasyon ID'si varsa (yani veritabanında kayıtlıysa) API'yi güncelle
-    if (kombinasyon.combinationId) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/variation-combinations/combinations/${kombinasyon.combinationId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            // Eğer authentication gerekiyorsa token ekleyin
-            // 'Authorization': `Bearer ${token}`
-          },
-          credentials: 'include', // Cookie'leri gönder
-          body: JSON.stringify({
-            imageUrl: kombinasyon.resim?.url,
-            price: kombinasyon.fiyat,
-            stock: kombinasyon.stok
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const updatedData = await response.json();
-        console.log('Kombinasyon güncellendi:', updatedData);
-      } catch (error) {
-        console.error('Kombinasyon güncellenirken hata:', error);
-        // Hata durumunda state'i geri al
-        setVaryasyonKombinasyonlari(prev => {
-          const yeni = [...prev];
-          yeni[index][alan] = kombinasyon[alan];
-          return yeni;
-        });
-        // Kullanıcıya hata mesajı göster
-        alert('Kombinasyon güncellenirken bir hata oluştu. Lütfen tekrar deneyin.');
-      }
-    }
-  };
-
-  // Sayfa açıldığında localStorage'dan görselleri yükle (süre kontrolü ile)
-  useEffect(() => {
-    try {
-      const kayitli = localStorage.getItem('yuklenenGorseller');
-      if (kayitli) {
-        const kayitObj = JSON.parse(kayitli);
-        const now = Date.now();
-        const SURE_MS = 60 * 60 * 1000; // 1 saat
-        
-        // Timestamp kontrolü
-        if (now - kayitObj.timestamp < SURE_MS) {
-          // Görsel URL'lerinin geçerli olduğundan emin ol
-          const gecerliGorseller = kayitObj.data.filter(gorsel => 
-            gorsel && gorsel.url && gorsel.url.startsWith('http')
+        // Kombinasyonları sadece seçili varyasyonlar için oluştur
+        if (yeniVaryasyon1.length > 0 && secilenVaryasyon2Degerleri.length > 0) {
+          const yeniKombinasyonlar = yeniVaryasyon1.flatMap(v1 =>
+            secilenVaryasyon2Degerleri.map(v2 => ({
+              varyasyon: `${v1.OptionName} / ${v2.OptionName}`,
+              v1,
+              v2,
+              stok: '',
+              fiyat: '',
+              resim: null
+            }))
           );
-          
-          if (gecerliGorseller.length > 0) {
-            setGorseller(gecerliGorseller);
-            console.log('Görseller localStorage\'dan yüklendi:', gecerliGorseller);
-          } else {
-            console.log('Geçerli görsel bulunamadı');
-            localStorage.removeItem('yuklenenGorseller');
-          }
+          setVaryasyonKombinasyonlari(yeniKombinasyonlar);
         } else {
-          console.log('Görsellerin süresi dolmuş');
-          localStorage.removeItem('yuklenenGorseller');
+          setVaryasyonKombinasyonlari([]);
         }
-      }
-    } catch (error) {
-      console.error('Görseller yüklenirken hata:', error);
-      localStorage.removeItem('yuklenenGorseller');
-    }
-  }, []);
 
-  // gorseller state'i değiştiğinde localStorage'a kaydet (timestamp ile)
-  useEffect(() => {
-    try {
-      if (gorseller && gorseller.length > 0) {
-        const kayit = {
-          data: gorseller,
-          timestamp: Date.now()
-        };
-        localStorage.setItem('yuklenenGorseller', JSON.stringify(kayit));
-        console.log('Görseller localStorage\'a kaydedildi:', gorseller);
-      }
-    } catch (error) {
-      console.error('Görseller kaydedilirken hata:', error);
+        return yeniVaryasyon1;
+      });
     }
-  }, [gorseller]);
+    if (varyasyonIndex === 2) {
+      setSecilenVaryasyon2Degerleri(prev => {
+        // Seçiliyse kaldır, değilse ekle
+        const yeniVaryasyon2 = prev.find(item => item.OptionID === deger.OptionID)
+          ? prev.filter(item => item.OptionID !== deger.OptionID)
+          : [...prev, deger];
+
+        // Kombinasyonları sadece seçili varyasyonlar için oluştur
+        if (secilenVaryasyon1Degerleri.length > 0 && yeniVaryasyon2.length > 0) {
+          const yeniKombinasyonlar = secilenVaryasyon1Degerleri.flatMap(v1 =>
+            yeniVaryasyon2.map(v2 => ({
+              varyasyon: `${v1.OptionName} / ${v2.OptionName}`,
+              v1,
+              v2,
+              stok: '',
+              fiyat: '',
+              resim: null
+            }))
+          );
+          setVaryasyonKombinasyonlari(yeniKombinasyonlar);
+        } else {
+          setVaryasyonKombinasyonlari([]);
+        }
+
+        return yeniVaryasyon2;
+      });
+    }
+  };
 
   // Ürün kaydedilince localStorage'dan sil
   const handleSubmit = async () => {
@@ -594,6 +453,12 @@ const UrunListeleme = () => {
       alert('Lütfen ürün için ana görsel seçiniz!');
       return;
     }
+    // Varyasyon seçildiyse ancak kombinasyon oluşturulmadıysa uyarı ver
+    if ((secilenVaryasyon1Tipi || secilenVaryasyon2Tipi) && varyasyonKombinasyonlari.length === 0) {
+      alert('Lütfen varyasyon seçeneklerini seçip kombinasyonları oluşturun.');
+      return;
+    }
+
     try {
       // Önce ürünü kaydet
       const productData = {
@@ -601,15 +466,14 @@ const UrunListeleme = () => {
         Description: aciklama,
         BasePrice: satisFiyati,
         Currency: paraBirimi,
-        Stock: stokAdedi,
+        Stock: varyasyonKombinasyonlari.length > 0 ? hesaplaToplamStok() : parseInt(stokAdedi) || 0,
         ShippingType: kargoTipi,
-        ShippingCost: kargoUcreti,
+        ShippingCost: kargoUcreti === '' ? 0 : Number(kargoUcreti),
         ProductType: urunTipi,
         Language: urunDil,
         IsDiscounted: indirimVar,
         ImageURL: gorseller[anaGorselIndex]?.url || '',
-        opsiyonlar: opsiyonList.filter(o => o.ad && o.ad.trim() !== ''), // Sadece adı dolu olan opsiyonları gönder
-        Status: true // Ürün eklerken status otomatik true (aktif) olacak
+        Status: true
       };
 
       console.log('Gönderilen ürün verisi:', productData);
@@ -662,35 +526,25 @@ const UrunListeleme = () => {
 
       // Ürün kaydından sonra:
       if (varyasyonKombinasyonlari.length > 0) {
-        // OptionName'den OptionID'ye mapping oluştur
-        const optionNameToId = {};
-        varyasyonlar.forEach(v => {
-          v.secenekler.forEach(opt => {
-            optionNameToId[opt.OptionName] = opt.OptionID;
+        // Kombinasyonları kaydet
+        const combinationsToSave = varyasyonKombinasyonlari.map(komb => ({
+          ProductID: parseInt(productId), // ProductID'yi sayıya çevir
+          Varyasyon1: secilenVaryasyon1Tipi,
+          Varyasyon2: secilenVaryasyon2Tipi,
+          Option1: komb.v1.OptionName,
+          Option2: komb.v2.OptionName,
+        }))
+        .filter(komb => komb.Option1 && komb.Option2);
+
+        if (combinationsToSave.length > 0) {
+          console.log('Gönderilecek kombinasyonlar:', combinationsToSave); // Log ekledim
+          await fetch(`${API_BASE_URL}/urunvaryasyonkaydet`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(combinationsToSave)
           });
-        });
-
-        const combinations = varyasyonKombinasyonlari
-          .map(komb => {
-            const [v1, v2] = komb.varyasyon.split(' / ');
-            return {
-              option1ID: optionNameToId[v1],
-              option2ID: optionNameToId[v2],
-              price: komb.fiyat === '' ? 0 : Number(komb.fiyat),
-              stock: komb.stok === '' ? 0 : Number(komb.stok),
-              imageUrl: komb.resim?.url || ''
-            };
-          })
-          .filter(komb => komb.price > 0 && komb.stock > 0);
-
-        await fetch('http://localhost:5000/api/variation-combinations/combinations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            productId: productId,
-            combinations: combinations
-          })
-        });
+          console.log('Varyasyon kombinasyonları kaydedildi.');
+        }
       }
 
       alert('Ürün ve kategori başarıyla kaydedildi!');
@@ -700,7 +554,13 @@ const UrunListeleme = () => {
       setStokAdedi('');
       setAciklama('');
       setSeciliKategori(''); // Tek kategori için state'i temizle
+      setSecilenVaryasyon1Tipi(''); // Varyasyon tipi state'lerini temizle
+      setSecilenVaryasyon2Tipi('');
+      setSecilenVaryasyon1Degerleri([]); // Varyasyon seçenekleri state'lerini temizle
+      setSecilenVaryasyon2Degerleri([]);
+      setVaryasyonKombinasyonlari([]); // Kombinasyonları temizle
       setGorseller([]);
+      setAnaGorselIndex(null); // Ana görsel index'ini sıfırla
       localStorage.removeItem('yuklenenGorseller');
 
     } catch (error) {
@@ -735,38 +595,44 @@ const UrunListeleme = () => {
     fetchCategories();
   }, []);
 
-  // Varyasyonları API'den getir
-  useEffect(() => {
-    // Backend sunucusunun çalışıp çalışmadığını kontrol et
-    const checkServer = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/test`);
-        if (response.ok) {
-          console.log('Backend sunucusu çalışıyor');
-          fetchVaryasyonlar();
-        } else {
-          const errorData = await response.text();
-          throw new Error(`Backend sunucusu yanıt vermiyor: ${errorData}`);
-        }
-      } catch (error) {
-        console.error('Backend sunucusu kontrolü başarısız:', error);
-        // Sunucu çalışmıyorsa varsayılan varyasyonları kullan
-        const varsayilanVaryasyonlar = [
-          { ad: 'Beden', secenekler: ['S', 'M', 'L', 'XL'] },
-          { ad: 'Renk', secenekler: ['Siyah', 'Beyaz', 'Kırmızı', 'Mavi'] }
-        ];
-        setVaryasyonlar(varsayilanVaryasyonlar);
-        setVaryasyonSecenekleri(varsayilanVaryasyonlar.map(v => v.ad));
-        const degerler = {};
-        varsayilanVaryasyonlar.forEach(v => {
-          degerler[v.ad] = v.secenekler;
-        });
-        setVaryasyonDegerleri(degerler);
-        alert(`Backend sunucusuna bağlanılamadı: ${error.message}. Varsayılan varyasyonlar kullanılıyor.`);
-      }
-    };
+  // Varyasyonları API'den çeken fonksiyon
+  const fetchVaryasyonlar = async () => {
+    try {
+      // API'den varyasyonları çek
+      const response = await axios.get(`${API_BASE_URL}/variations`);
+      console.log('API\'den gelen varyasyonlar:', response.data);
 
-    checkServer();
+      // API'den gelen veriyi düzgün şekilde işle
+      const data = response.data.map(v => ({
+        ad: v.ad,
+        VariationID: v.VariationID,
+        secenekler: v.secenekler.map((opt, index) => ({
+          OptionID: `${v.VariationID}-${index}`, // Benzersiz ID oluştur
+          OptionName: opt
+        }))
+      }));
+
+      console.log('İşlenmiş varyasyon verisi:', data);
+
+      setVaryasyonlar(data);
+      setVaryasyonSecenekleri(data.map(v => v.ad));
+      const degerler = {};
+      data.forEach(v => {
+        degerler[v.ad] = v.secenekler;
+      });
+      setVaryasyonDegerleri(degerler);
+    } catch (error) {
+      console.error('Varyasyonlar API\'den çekilemedi:', error);
+      setVaryasyonlar([]);
+      setVaryasyonSecenekleri([]);
+      setVaryasyonDegerleri({});
+      alert('Varyasyonlar API\'den çekilemedi.');
+    }
+  };
+
+  // Varyasyonları API'den getir (useEffect)
+  useEffect(() => {
+    fetchVaryasyonlar();
   }, []);
 
   return (
@@ -975,18 +841,12 @@ const UrunListeleme = () => {
             <label className="dashboard-label">STOK ADEDİ <span style={{ color: 'red' }}>*</span></label>
             <input 
               className="dashboard-input" 
-              value={stokAdedi} 
+              value={stokAdedi}
               onChange={handleStokChange} 
               placeholder="Stok adedi"
               type="text"
               inputMode="numeric"
-              disabled={varyasyon1 && varyasyon2} // Varyasyon seçiliyse devre dışı bırak
             />
-            {varyasyon1 && varyasyon2 && (
-              <div style={{ color: '#ff0099', fontSize: 13, marginTop: 4 }}>
-                Varyasyon seçildiği için stok adedi otomatik olarak toplanmaktadır.
-              </div>
-            )}
           </div>
         </div>
         <div style={{ marginBottom: 16 }}>
@@ -1036,185 +896,73 @@ const UrunListeleme = () => {
           <div style={{ fontSize: 15, color: '#666', marginBottom: 12 }}>
             Bu üründe sunmak istediğiniz varyasyonları seçtikten sonra her biri veya bir bölümü için görsel, stok ve fiyat bilgisi girebilirsiniz.
           </div>
-          {/* Varyasyon seçimi */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12,alignItems:'center'}}>
+          {/* Varyasyon tipi seçimi (Dropdown) */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems:'center'}}>
             <select
               className="dashboard-input"
-              value={varyasyon1}
-              onChange={e => handleVaryasyonChange(1, e.target.value)}
+              value={secilenVaryasyon1Tipi}
+              onChange={e => handleVaryasyonTipiChange(1, e.target.value)}
             >
-              <option value="">VARYASYON 1 Seçiniz...</option>
-              {varyasyonSecenekleri.map(v => (
-                <option key={v} value={v}>{v}</option>
+              <option value="">VARYASYON 1 Tipi Seçiniz...</option>
+              {varyasyonSecenekleri.map((v, index) => (
+                <option key={`varyasyon1-${index}-${v}`} value={v}>{v}</option>
               ))}
             </select>
             <select
               className="dashboard-input"
-              value={varyasyon2}
-              onChange={e => handleVaryasyonChange(2, e.target.value)}
+              value={secilenVaryasyon2Tipi}
+              onChange={e => handleVaryasyonTipiChange(2, e.target.value)}
             >
-              <option value="">VARYASYON 2 Seçiniz...</option>
-              {varyasyonSecenekleri.map(v => (
-                <option key={v} value={v}>{v}</option>
+              <option value="">VARYASYON 2 Tipi Seçiniz...</option>
+              {varyasyonSecenekleri.map((v, index) => (
+                <option key={`varyasyon2-${index}-${v}`} value={v}>{v}</option>
               ))}
             </select>
-            <button
-              type="button"
-              className="dashboard-button"
-              style={{ padding: '8px 16px', fontSize: 14, marginLeft: 8 }}
-              onClick={handleKombinasyonOlustur}
-              disabled={!varyasyon1 || !varyasyon2}
-            >
-              Kombinasyonları Oluştur
-            </button>
+           
           </div>
-          {/* Varyasyon kombinasyonları accordion yapısı */}
-          {varyasyonKombinasyonlari.length > 0 && (
-            <div style={{ maxHeight: 350, overflowY: 'auto', border: '1px solid #eee', borderRadius: 4, marginBottom: 16 }}>
-              {/* Gruplu kombinasyonları al */}
-              {Object.entries(grupluKombinasyonlar()).map(([beden, renkler]) => (
-                <div key={`beden-${beden}`}>
-                  {/* Ana başlık: Beden */}
-                  <div
-                    style={{
-                      background: '#f7f8fa',
-                      padding: 10,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #eee',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                    onClick={() => handleBedenToggle(beden)}
-                  >
-                    <span>{beden}</span>
-                    <span style={{ fontSize: 18 }}>{acikBedenler.includes(beden) ? '▲' : '▼'}</span>
+
+          {/* Seçilen varyasyon tiplerine ait seçeneklerin çoklu seçimi (Checkboxlar) */}
+          {(secilenVaryasyon1Tipi || secilenVaryasyon2Tipi) && (
+            <div style={{ display: 'flex', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
+              {/* Varyasyon 1 Seçenekleri */}
+              {secilenVaryasyon1Tipi && varyasyonDegerleri[secilenVaryasyon1Tipi] && (
+                <div style={{ flex: 1, minWidth: 150 }}>
+                  <div style={{ fontWeight: 500, marginBottom: 6 }}>{secilenVaryasyon1Tipi} Seçenekleri</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {varyasyonDegerleri[secilenVaryasyon1Tipi].map((deger, index) => (
+                      <label key={`v1-${deger.OptionID}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
+                        <input
+                          type="checkbox"
+                          checked={secilenVaryasyon1Degerleri.find(item => item.OptionID === deger.OptionID) !== undefined}
+                          onChange={() => handleVaryasyonDegerChange(1, deger)}
+                        />
+                        {deger.OptionName}
+                      </label>
+                    ))}
                   </div>
-                  {/* Eğer bu beden açıksa, altına renkleri ve alanları göster */}
-                  {acikBedenler.includes(beden) && (
-                    <table className="kombinasyon-table" style={{ width: '100%', fontSize: 14, background: '#fff' }}>
-                      <thead>
-                        <tr>
-                          <th style={{ padding: 8, width: 120 }}>Renk</th>
-                          <th style={{ padding: 8 }}>Görsel</th>
-                          <th style={{ padding: 8 }}>Fiyat</th>
-                          <th style={{ padding: 8 }}>Stok</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {renkler.map((komb, index) => (
-                          <tr key={`kombinasyon-${beden}-${komb.renk}-${index}`}>
-                            <td data-label="Renk" style={{ padding: 8 }}>{komb.v2 ? komb.v2.OptionName : komb.renk}</td>
-                            <td data-label="Görsel" style={{ padding: 8 }}>
-                              {!komb.resim ? (
-                                <button
-                                  type="button"
-                                  style={{
-                                    padding: '6px 12px',
-                                    borderRadius: 6,
-                                    border: '1px solid #ccc',
-                                    background: '#fff',
-                                    cursor: 'pointer',
-                                    fontWeight: 700,
-                                    fontSize: 16
-                                  }}
-                                  onClick={() => handleGorselSecModalAc(varyasyonKombinasyonlari.findIndex(k => k.varyasyon === komb.varyasyon))}
-                                >
-                                  Görsel Seç
-                                </button>
-                              ) : (
-                                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                  <img
-                                    src={komb.resim.url}
-                                    alt="Kombinasyon görseli"
-                                    style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', border: '1px solid #eee' }}
-                                  />
-                                  <button
-                                    onClick={() => handleKombinasyonGorselSil(varyasyonKombinasyonlari.findIndex(k => k.varyasyon === komb.varyasyon))}
-                                    style={{
-                                      background: 'none',
-                                      border: 'none',
-                                      color: '#ff0099',
-                                      fontSize: 12,
-                                      cursor: 'pointer',
-                                      marginTop: 2
-                                    }}
-                                    title="Görseli Kaldır"
-                                  >🗑️</button>
-                                </div>
-                              )}
-                            </td>
-                            <td data-label="Fiyat" style={{ padding: 8 }}>
-                              <input
-                                type="text"
-                                className="dashboard-input"
-                                style={{ width: 90 }}
-                                value={komb.fiyat}
-                                onChange={e => handleKombinasyonFiyatChange(
-                                  varyasyonKombinasyonlari.findIndex(k => k.varyasyon === komb.varyasyon),
-                                  e.target.value
-                                )}
-                                placeholder="Fiyat"
-                                inputMode="decimal"
-                              />
-                            </td>
-                            <td data-label="Stok" style={{ padding: 8 }}>
-                              <input
-                                type="text"
-                                className="dashboard-input"
-                                style={{ width: 70 }}
-                                value={komb.stok}
-                                onChange={e => handleKombinasyonStokChange(
-                                  varyasyonKombinasyonlari.findIndex(k => k.varyasyon === komb.varyasyon),
-                                  e.target.value
-                                )}
-                                placeholder="Stok"
-                                inputMode="numeric"
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
                 </div>
-              ))}
+              )}
+
+              {/* Varyasyon 2 Seçenekleri */}
+              {secilenVaryasyon2Tipi && varyasyonDegerleri[secilenVaryasyon2Tipi] && (
+                <div style={{ flex: 1, minWidth: 150 }}>
+                  <div style={{ fontWeight: 500, marginBottom: 6 }}>{secilenVaryasyon2Tipi} Seçenekleri</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {varyasyonDegerleri[secilenVaryasyon2Tipi].map((deger, index) => (
+                      <label key={`v2-${deger.OptionID}-${index}`} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
+                        <input
+                          type="checkbox"
+                          checked={secilenVaryasyon2Degerleri.find(item => item.OptionID === deger.OptionID) !== undefined}
+                          onChange={() => handleVaryasyonDegerChange(2, deger)}
+                        />
+                        {deger.OptionName}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
-          {/* Opsiyon Belirleme Alanı */}
-          <div style={{ marginTop: 16 }}>
-            <div style={{ fontWeight: 500, marginBottom: 8 }}>Opsiyon Belirleme</div>
-            <div style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>
-              Üründe hangi opsiyonların bulunacağını ve bunlar için eklenecek fiyatları belirleyin. Opsiyon belirsiz ise fiyat alanını boş bırakabilirsiniz.
-            </div>
-            {opsiyonList.map((opsiyon, index) => (
-              <div key={`opsiyon-${index}`} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                <input
-                  className="dashboard-input"
-                  style={{ flex: 2 }}
-                  placeholder="Opsiyon Adı"
-                  value={opsiyon.ad}
-                  onChange={e => handleOpsiyonChange(index, 'ad', e.target.value)}
-                />
-                <input
-                  className="dashboard-input"
-                  style={{ flex: 1 }}
-                  placeholder="Fiyat"
-                  value={opsiyon.fiyat}
-                  onChange={e => handleOpsiyonChange(index, 'fiyat', e.target.value)}
-                />
-              </div>
-            ))}
-            <button
-              type="button"
-              className="dashboard-button"
-              style={{ padding: '6px 16px', fontSize: 13, background: 'rgb(255 0 141)', color: 'white', border: '1px solid #ccc', marginTop: 4 }}
-              onClick={handleOpsiyonEkle}
-            >
-              + Opsiyon Ekle
-            </button>
-          </div>
         </div>
       </div>
 
