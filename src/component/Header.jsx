@@ -8,6 +8,7 @@ import { useUser } from '../context/UserContext';
 import UserMenu from './UserMenu';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 function Header() {
     const navigate = useNavigate();
@@ -16,22 +17,7 @@ function Header() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showSidebarBagMenu, setShowSidebarBagMenu] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [cartItems, setCartItems] = useState([
-        {
-            id: 1,
-            name: "Örnek Ürünsdsdasd",
-            price: 199.99,
-            image: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            quantity: 1
-        },
-        {
-            id: 2,
-            name: "Örnek Ürünsadsad",
-            price: 199.99,
-            image: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            quantity: 2
-        }
-    ]);
+    const { cartItems, removeFromCart, updateQuantity, getTotalPrice, getTotalItems } = useCart();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [isRegister, setIsRegister] = useState(false);
     const [loginEmail, setLoginEmail] = useState('');
@@ -90,12 +76,6 @@ function Header() {
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
     };
-
-    const removeFromCart = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
-    };
-
-    const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -255,6 +235,14 @@ function Header() {
         console.log('=== KAYIT İŞLEMİ TAMAMLANDI ===');
     };
 
+    // createCartItemKey fonksiyonunu ekleyelim
+    const createCartItemKey = (item) => {
+        const productId = item.product?.id || item.product?.ProductID;
+        const v1 = item.selectedVaryasyon1 || '';
+        const v2 = item.selectedVaryasyon2 || '';
+        return `${productId}-${v1}-${v2}`;
+    };
+
     return (
         <div style={{
             display: 'flex',
@@ -351,7 +339,7 @@ function Header() {
                     top: 0,
                     right: isCartOpen ? 0 : '-400px',
                     width: 400,
-                    height: '93vh', // Changed to 90vh
+                    height: '93vh',
                     background: '#fff',
                     boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
                     zIndex: 2000,
@@ -360,7 +348,7 @@ function Header() {
                     flexDirection: 'column',
                     padding: 24,
                     visibility: isCartOpen ? 'visible' : 'hidden',
-                    marginBottom: '10vh' // Added 10vh margin at bottom
+                    marginBottom: '10vh'
                 }}>
                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
                         <h2 style={{margin:0, fontSize:22}}>Sepetim</h2>
@@ -370,31 +358,94 @@ function Header() {
                         {cartItems.length === 0 ? (
                             <p>Sepetiniz boş.</p>
                         ) : (
-                            cartItems.map(item => (
-                                <div key={item.id} style={{display:'flex', alignItems:'center', marginBottom:16, borderBottom:'1px solid #eee', paddingBottom:8}}>
-                                    <img src={item.image} alt={item.name} style={{width:60, height:60, objectFit:'cover', borderRadius:8, marginRight:12}} />
-                                    <div style={{flex:1}}>
-                                        <div style={{fontWeight:'bold'}}>{item.name}</div>
-                                        <div style={{color:'#888', fontSize:14}}>Adet: {item.quantity}</div>
+                            cartItems.map((item, index) => {
+                                const productData = item.product || item;
+                                const itemKey = createCartItemKey(item); // item.key yerine createCartItemKey kullanıyoruz
+
+                                // productData veya productData.id/ProductID undefined ise bu item'ı atla
+                                if (!productData || (!productData.id && !productData.ProductID)) {
+                                    console.error('Sepette eksik/hatalı ürün verisi:', item);
+                                    return null; 
+                                }
+
+                                return (
+                                    <div key={itemKey} style={{display:'flex', alignItems:'center', marginBottom:16, borderBottom:'1px solid #eee', paddingBottom:8}}>
+                                        <img 
+                                            src={productData.resim || productData.ImageURL}
+                                            alt={productData.baslik || productData.ProductName || 'Ürün Görseli'}
+                                            style={{width:60, height:60, objectFit:'cover', borderRadius:8, marginRight:12}}
+                                        />
+                                        <div style={{flex:1}}>
+                                            <div style={{fontWeight:'bold'}}>{productData.baslik || productData.ProductName || 'Ürün Adı'}</div>
+                                            {/* Varyasyon bilgileri (sadece yeni yapıda varsa) */}
+                                            {item.selectedVaryasyon1 || item.selectedVaryasyon2 ? (
+                                                <div style={{fontSize: 12, color: '#555', marginTop: '4px'}}>
+                                                    {item.selectedVaryasyon1 && <span>{item.selectedVaryasyon1}</span>}
+                                                    {item.selectedVaryasyon1 && item.selectedVaryasyon2 && <span> - </span>}
+                                                    {item.selectedVaryasyon2 && <span>{item.selectedVaryasyon2}</span>}
+                                                </div>
+                                            ) : null}
+                                            <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
+                                                <button 
+                                                    onClick={() => {
+                                                        // Eğer miktar 1'den büyükse azaltma işlemini yap
+                                                        if ((item.quantity || 0) > 1) {
+                                                            updateQuantity(itemKey, (item.quantity || 0) - 1);
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        background: (item.quantity || 0) <= 1 ? '#e0e0e0' : '#f0f0f0', // 1 veya daha az ise butonu soluk göster
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: (item.quantity || 0) <= 1 ? 'not-allowed' : 'pointer', // 1 veya daha az ise cursor'ı değiştir
+                                                        padding: '12px 12px',
+                                                        opacity: (item.quantity || 0) <= 1 ? 0.5 : 1 // 1 veya daha az ise butonu soluk göster
+                                                    }}
+                                                    disabled={(item.quantity || 0) <= 1} // 1 veya daha az ise butonu devre dışı bırak
+                                                >-</button>
+                                                <span style={{color:'#888', fontSize:14}}>{item.quantity || 0}</span>
+                                                <button 
+                                                    onClick={() => updateQuantity(itemKey, (item.quantity || 0) + 1)}
+                                                    style={{
+                                                        background: '#f0f0f0',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        padding: '12px 12px'
+                                                    }}
+                                                >+</button>
+                                            </div>
+                                        </div>
+                                        <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
+                                            <div style={{fontWeight:'bold'}}>
+                                                {/* Fiyatı productData.fiyat veya productData.BasePrice üzerinden alıyoruz */}
+                                                {typeof productData.fiyat === 'string' 
+                                                    ? productData.fiyat 
+                                                    : `₺${(productData.fiyat || productData.BasePrice || 0)?.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                                            </div>
+                                            <button onClick={() => removeFromCart(itemKey)} style={{background:'none', border:'none', color:'#d00', fontSize:20, cursor:'pointer'}}><FaTimes /></button> 
+                                        </div>
                                     </div>
-                                    <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
-                                        <div style={{fontWeight:'bold'}}>{item.price.toLocaleString('tr-TR', {style:'currency', currency:'TRY'})}</div>
-                                        <button onClick={() => removeFromCart(item.id)} style={{background:'none', border:'none', color:'#d00', fontSize:20, cursor:'pointer'}}><FaTimes /></button>
-                                    </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                     <div style={{borderTop:'1px solid #eee', paddingTop:16}}>
                         <div style={{display:'flex', justifyContent:'space-between', fontWeight:'bold', fontSize:18, marginBottom:12}}>
                             <span>Toplam:</span>
-                            <span>{total.toLocaleString('tr-TR', {style:'currency', currency:'TRY'})}</span>
+                            {/* Toplam fiyatı getTotalPrice fonksiyonu hesaplıyor */}
+                            <span>₺{getTotalPrice().toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                         </div>
                         <div>
                             <button style={{
                                 width:'100%',
+                                padding: '12px',
                                 background:'#222',
-                                color:'#fff'
+                                color:'#fff',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '16px'
                             }}>
                                 Alışverişi Tamamla
                             </button>
@@ -491,7 +542,23 @@ function Header() {
                     <div style={{ position: 'relative', marginLeft: '10px', marginRight: '20px' }}>
                         <FaShoppingBag className='icons' style={{ cursor: 'pointer' }} onClick={() => setIsCartOpen(true)} />
                         {cartItems.length > 0 && (
-                            <span style={{ position: 'absolute', top: -6, right: -6, background: '#d00', color: '#fff', borderRadius: '50%', fontSize: 12, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cartItems.length}</span>
+                            <span style={{ 
+                                position: 'absolute', 
+                                top: -6, 
+                                right: -6, 
+                                background: '#d00', 
+                                color: '#fff', 
+                                borderRadius: '50%', 
+                                fontSize: 12, 
+                                width: 20, 
+                                height: 20, 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center' 
+                            }}>
+                                {/* Toplam ürün adedini getTotalItems fonksiyonu hesaplıyor */}
+                                {getTotalItems()}
+                            </span>
                         )}
                     </div>
                 </div>

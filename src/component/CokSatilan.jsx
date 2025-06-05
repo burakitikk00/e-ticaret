@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
 import axios from 'axios';
 import '../css/style.css'
+import { useNavigate } from 'react-router-dom';
+import ProductDetailModal from './ProductDetailModal';
+import { useCart } from '../context/CartContext';
 
 function CokSatilan() {
+    const { addToCart } = useCart();
     // Ok bileşenleri
     const NextArrow = ({ onClick }) => (
         <button className="slick-arrow slick-next" onClick={onClick} aria-label="Next" type="button">
@@ -27,6 +31,11 @@ function CokSatilan() {
 
     // Ürünler state'i
     const [products, setProducts] = useState([]);
+    const navigate = useNavigate();
+
+    // Modal için state'ler
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [modalProduct, setModalProduct] = useState(null);
 
     // Çok satan ürünleri veritabanından çek
     useEffect(() => {
@@ -64,6 +73,25 @@ function CokSatilan() {
 
     return (
         <div className="products-recommendation-wrapper">
+            <ProductDetailModal
+                product={modalProduct}
+                isVisible={showDetailModal}
+                onClose={() => setShowDetailModal(false)}
+                onAddToCart={(itemToAdd) => {
+                    console.log('Çok Satanlar: Sepete eklenecek ürün:', itemToAdd);
+                    if (itemToAdd && itemToAdd.product) {
+                        addToCart(itemToAdd);
+                        setShowDetailModal(false);
+                        alert('Ürün sepete eklendi!');
+                    } else {
+                        console.error('Çok Satanlar: Sepete eklenecek ürün bilgisi eksik veya hatalı.', itemToAdd);
+                    }
+                }}
+                onViewProduct={(productId) => {
+                    navigate(`/product/${productId}`);
+                }}
+            />
+
             <div className="ProductsRecommendation_products"><h2 className="baslik">ÇOK SATANLAR</h2></div>
             <Slider {...settings} className="products-recommendation-slider">
                 {products.map((product, index) => (
@@ -73,7 +101,13 @@ function CokSatilan() {
                                 <div className="product-card-image">
                                     <img src={product.resim || product.ImageURL} alt={product.baslik || product.ProductName} />
                                     <div className="hover-detay">
-                                        <button type="submit" className="sepete-ekle-btn">SEPETE EKLE</button>
+                                        <button 
+                                            type="button" 
+                                            className="sepete-ekle-btn" 
+                                            onClick={e => {e.stopPropagation(); setModalProduct(product); setShowDetailModal(true);}}
+                                        >
+                                            SEPETE EKLE
+                                        </button>
                                         <div className="urun-incele">
                                             <span>ÜRÜNÜ İNCELE</span>
                                             <svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg">

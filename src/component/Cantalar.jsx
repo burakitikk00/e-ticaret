@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
+import axios from 'axios';
 import '../css/style.css'
+import { useNavigate } from 'react-router-dom';
+import ProductDetailModal from './ProductDetailModal';
+import { useCart } from '../context/CartContext';
 
 function Cantalar() {
+    const { addToCart } = useCart();
     // Özel ok bileşenlerini ayrı fonksiyonlar olarak tanımlıyoruz
     const NextArrow = ({ onClick }) => (
         <button className="slick-arrow slick-next" onClick={onClick} aria-label="Next" type="button">
@@ -74,6 +79,11 @@ function Cantalar() {
             fiyat: "₺499.90"
         }
     ]);
+    const navigate = useNavigate();
+
+    // Modal için state'ler
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [modalProduct, setModalProduct] = useState(null);
 
     const settings = {
         dots: false,
@@ -93,8 +103,44 @@ function Cantalar() {
         ]
     };
 
+    // Ürünleri API'den çek
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                // "kategori=çantalar" parametresiyle ürünleri çekiyoruz
+                const response = await axios.get('http://localhost:5000/api/products?kategori=çantalar');
+                if (response.data.success) {
+                    setProducts(response.data.products);
+                }
+            } catch (error) {
+                console.error('Çantalar yüklenirken hata:', error);
+            }
+        };
+        fetchProducts();
+    }, []);
+
     return (
         <div className="products-recommendation-wrapper">
+            <ProductDetailModal
+                product={modalProduct}
+                isVisible={showDetailModal}
+                onClose={() => setShowDetailModal(false)}
+                onAddToCart={(itemToAdd) => {
+                    // ProductDetailModal'dan gelen objenin içindeki product'ı addToCart'a gönderiyoruz
+                    console.log('Çantalar: Sepete eklenecek ürün:', itemToAdd); // Log eklendi
+                    if (itemToAdd && itemToAdd.product) {
+                        addToCart(itemToAdd); // Tam itemToAdd objesini gönderiyoruz
+                        setShowDetailModal(false);
+                        // İsteğe bağlı: Kullanıcıya bildirim göster
+                        alert('Ürün sepete eklendi!');
+                    } else {
+                        console.error('Çantalar: Sepete eklenecek ürün bilgisi eksik veya hatalı.', itemToAdd);
+                    }
+                }}
+                onViewProduct={(productId) => {
+                    navigate(`/product/${productId}`);
+                }}
+            />
             <div className="ProductsRecommendation_products"><h2 className="baslik">ÇANTALAR</h2></div>
             <Slider {...settings} className="products-recommendation-slider">
                 {products.map((product, index) => (
@@ -104,7 +150,13 @@ function Cantalar() {
                                 <div className="product-card-image">
                                     <img src={product.resim} alt={product.baslik} />
                                     <div className="hover-detay">
-                                        <button type="submit" className="sepete-ekle-btn">SEPETE EKLE</button>
+                                        <button 
+                                            type="button" 
+                                            className="sepete-ekle-btn" 
+                                            onClick={e => {e.stopPropagation(); setModalProduct(product); setShowDetailModal(true);}}
+                                        >
+                                            SEPETE EKLE
+                                        </button>
                                         <div className="urun-incele">
                                             <span>ÜRÜNÜ İNCELE</span>
                                             <svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg">

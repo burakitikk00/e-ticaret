@@ -62,4 +62,25 @@ exports.kaydet = async (req, res) => {
       error: err.message 
     });
   }
+};
+
+// Ürün id ile varyasyonları ve seçeneklerini dönen fonksiyon
+exports.getByProductId = async (req, res) => {
+  const { productId } = req.params;
+  const sql = require('mssql');
+  const { config } = require('../config/db.config');
+  try {
+    const pool = await sql.connect(config);
+    // Ürüne ait varyasyonları ve seçenekleri getir
+    const result = await pool.request()
+      .input('ProductID', sql.Int, productId)
+      .query(`
+        SELECT Varyasyon1, Options1, varyasyon2, Options2
+        FROM urunvaryasyonbilgi
+        WHERE ProductID = @ProductID
+      `);
+    res.json(result.recordset);
+  } catch (err) {
+    res.status(500).json({ message: 'Varyasyonlar çekilemedi', error: err.message });
+  }
 }; 

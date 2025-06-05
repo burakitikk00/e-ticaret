@@ -58,9 +58,6 @@
     width: 100%;
 }
 
-
-
-
 .slick-slide {
     flex: 1;
     padding: 0.25rem;
@@ -289,5 +286,159 @@
         grid-template-columns: repeat(2, 1fr); /* 2 sütunlu grid yapısı */
         gap: 12px; /* Daha da küçük boşluk */
     }
+}
+
+/* Modal overlay ve içerik stilleri */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 24px;
+  min-width: 320px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px #0002;
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+}
+
+/* Modalda iki sütunlu modern yapı */
+.product-modal-content {
+  padding: 0;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+}
+.product-modal-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  align-items: stretch;
+  min-width: 320px;
+  max-width: 900px;
+}
+/* Modalda ürün görseli, .product-modal-image div'inin tamamını dolduracak şekilde ayarlandı */
+.product-modal-image {
+  flex: 1 1 50%;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  min-width: 180px;
+  max-width: 320px;
+  padding: 24px 0 24px 24px;
+  position: relative;
+  aspect-ratio: 3/4;
+  height: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #f6f6f6;
+}
+.product-modal-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+}
+.product-modal-details {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px 32px 32px 0;
+  min-width: 260px;
+}
+.product-modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.product-modal-price {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 1.5rem;
+}
+.product-modal-size {
+  margin-bottom: 1.5rem;
+}
+.product-modal-size label {
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+.product-modal-size-select {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+/* Varyasyon label stilleri */
+.variation-label {
+    display: block; /* Label'ı ayrı satıra al */
+    font-weight: 500; /* Kalınlık */
+    margin-bottom: 0.5rem; /* Select ile arasını aç */
+    color: #333; /* Daha belirgin bir renk */
+}
+
+/* Varyasyon select stilleri */
+.variation-select {
+    width: 100%; /* Tam genişlik */
+    padding: 0.75rem 1rem; /* İç boşluk */
+    border-radius: 8px; /* Yuvarlatılmış kenarlar */
+    border: 1px solid #ccc; /* Kenar çizgisi */
+    font-size: 1rem; /* Yazı boyutu */
+    appearance: none; /* Varsayılan oku gizle */
+    background-color: #fff; /* Arkaplan rengi */
+    cursor: pointer; /* İmleç */
+    /* Özel ok ikonu ekleyebilirsiniz gerekirse */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.362%22%20height%3D%22292.362%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2C114.5L146.2%2C255.3L5.4%2C114.5h281.6z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 0.7em top 50%;
+    background-size: 0.65em auto;
+}
+
+/* Select focus ve hover stilleri */
+.variation-select:focus {
+    outline: none;
+    border-color: var(--primary-color, #000); /* Focus olunca kenar rengi değişir */
+    box-shadow: 0 0 0 0.2rem rgba(0,0,0,0.25); /* Hafif gölge */
+}
+
+/* Select menü açılınca kenarların korunması genellikle tarayıcıya bağlıdır,
+   ancak select elemanının kendi stilini ayarlayarak genel görünümü iyileştiririz. */
+
+@media (max-width: 800px) {
+  .product-modal-grid {
+    flex-direction: column;
+    gap: 0;
+  }
+  .product-modal-image, .product-modal-details {
+    max-width: 100%;
+    padding: 24px;
+  }
 }
 

@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../css/style.css';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import ProductDetailModal from '../component/ProductDetailModal';
+import { useCart } from '../context/CartContext';
 
 function Tumurunler() {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { addToCart } = useCart();
     const { kategori } = useParams(); // URL'den kategori parametresini al
     // URL'den query parametresini al
     const params = new URLSearchParams(location.search);
@@ -30,6 +34,10 @@ function Tumurunler() {
     const [colorMenuOpen, setColorMenuOpen] = useState(false);
     const [materialMenuOpen, setMaterialMenuOpen] = useState(false);
     const [priceMenuOpen, setPriceMenuOpen] = useState(false);
+
+    // Modal için state'ler
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [modalProduct, setModalProduct] = useState(null);
 
     // Kategori state'i
     const [categories, setCategories] = useState([]);
@@ -198,6 +206,26 @@ function Tumurunler() {
 
     return (
         <div style={{position:'relative'}}>
+            {/* Product Detail Modalını çağır */}
+            <ProductDetailModal
+                product={modalProduct} // Gösterilecek ürün bilgisi
+                isVisible={showDetailModal} // Modalın görünürlüğü
+                onClose={() => setShowDetailModal(false)} // Modalı kapatma fonksiyonu
+                onAddToCart={(itemToAdd) => {
+                    console.log('Tüm Ürünler: Sepete eklenecek ürün:', itemToAdd);
+                    if (itemToAdd && itemToAdd.product) {
+                        addToCart(itemToAdd);
+                        setShowDetailModal(false);
+                        alert('Ürün sepete eklendi!');
+                    } else {
+                        console.error('Tüm Ürünler: Sepete eklenecek ürün bilgisi eksik veya hatalı.', itemToAdd);
+                    }
+                }} // Sepete ekleme fonksiyonu
+                onViewProduct={(productId) => {
+                    navigate(`/product/${productId}`); // Ürün detay sayfasına yönlendirme
+                }} // Ürün detay sayfasına gitme fonksiyonu
+            />
+
             <div style={{marginBottom: '24px'}}>
                 <div style={{fontSize: '15px', color: '#444', marginBottom: '8px'}}>
                     ANASAYFA &gt; {(selectedCategory || kategoriParam) ? (selectedCategory || kategoriParam).toUpperCase() : "TÜM ÜRÜNLER"}
@@ -440,16 +468,22 @@ function Tumurunler() {
                     {Array.from({ length: Math.ceil(sortedProducts.length / 21) }).map((_, pageIndex) => (
                         <div key={pageIndex} className="products-page">
                             {sortedProducts.slice(pageIndex * 21, (pageIndex + 1) * 21).map((product, index) => (
-                                <div key={index} className="product-card">
+                                <div key={product.id} className="product-card" style={{ width: '100%', margin: 0 }}>
                                     <div className="product-card-wrapper">
-                                        <div className="product-card-image">
+                                        <div className="product-card-image" style={{ cursor: 'pointer' }}>
                                             <img 
                                                 src={product.resim.startsWith('http') ? product.resim : `http://localhost:5000${product.resim}`} 
                                                 alt={product.baslik} 
                                             />
                                             <div className="hover-detay">
-                                                <button type="submit" className="sepete-ekle-btn">SEPETE EKLE</button>
-                                                <div className="urun-incele">
+                                                <button
+                                                    type="submit"
+                                                    className="sepete-ekle-btn"
+                                                    onClick={e => { e.stopPropagation(); setModalProduct(product); setShowDetailModal(true); }}
+                                                >
+                                                    SEPETE EKLE
+                                                </button>
+                                                <div className="urun-incele" style={{ cursor: 'pointer' }} onClick={e => { e.stopPropagation(); navigate(`/product/${product.id}`); }}>
                                                     <span>ÜRÜNÜ İNCELE</span>
                                                     <svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M1 5.5H11M11 5.5L6 0.5M11 5.5L6 10.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>

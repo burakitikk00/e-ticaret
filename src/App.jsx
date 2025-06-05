@@ -18,6 +18,7 @@ import HesapOzeti from './pages/dashboardsayfasi/HesapOzeti'
 import Login from './pages/Login'
 import ProtectedRoute from './component/ProtectedRoute'
 import { UserProvider } from './context/UserContext'
+import { CartProvider } from './context/CartContext'
 
 // SiteLayout: Header ve Footer'ı saran layout
 const SiteLayout = ({ children }) => (
@@ -32,70 +33,72 @@ const SiteLayout = ({ children }) => (
 
 function App() {
   return (
-    <UserProvider>
-      <Routes>
-        {/* Ana site için layout */}
-        <Route
-          path="/*"
-          element={
-            <SiteLayout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                {/* Tüm ürünler sayfası - kategori parametresi ile */}
-                <Route path="/urunler" element={<Tumurunler />} />
-                <Route path="/urunler/:kategori" element={<Tumurunler />} />
-                {/* Eski kategori sayfalarına gelen istekleri tüm ürünler sayfasına yönlendir */}
-                <Route path="/Ayakkabilar" element={<Navigate to="/urunler?kategori=ayakkabılar" replace />} />
-                <Route path="/Canta" element={<Navigate to="/urunler?kategori=çantalar" replace />} />
-                <Route path="/Gozlukler" element={<Navigate to="/urunler?kategori=gözlükler" replace />} />
-                <Route path="/CuzdanKartlik" element={<Navigate to="/urunler?kategori=cüzdan-kartlık" replace />} />
-                <Route path="/Sallar" element={<Navigate to="/urunler?kategori=şallar" replace />} />
-                {/* Diğer sayfalar */}
-                <Route path="/ProductDetail/:id" element={<ProductDetail />} />
-                <Route path="/Account" element={<Account />} />
-                <Route path="/Siparisler" element={<Siparisler />} />
-                <Route path="/HesapOzeti" element={<HesapOzeti />} />
-              </Routes>
-            </SiteLayout>
-          }
-        />
-        {/* Login sayfası */}
-        <Route path="/login" element={<Login />} />
-        {/* Dashboard için ayrı layout */}
-        <Route
-          path="/dashboard/*"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        />
-        <Route 
-          path="/urun-listeleme"  
-          element={<UrunListeleme />}
-        />
-        <Route
-          path="/satistaki-urunler"
-          element={<SatistakiUrunler />}
-        />
-        <Route
-          path="/siparisler"
-          element={<Siparisler />}
-        />
-        <Route
-          path="/varyasyon-ayarlar"
-          element={<VaryasyonAyarlar />}
-        />
-        <Route
-          path="/HesapGuvenligi"
-          element={<HesapGuvenligi />}
-        />
-        <Route
-          path="/HesapOzeti"
-          element={<HesapOzeti />}
-        />
-      </Routes>
-    </UserProvider>
+    <CartProvider>
+      <UserProvider>
+        <Routes>
+          {/* Ana site için layout */}
+          <Route
+            path="/*"
+            element={
+              <SiteLayout>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  {/* Tüm ürünler sayfası - kategori parametresi ile */}
+                  <Route path="/urunler" element={<Tumurunler />} />
+                  <Route path="/urunler/:kategori" element={<Tumurunler />} />
+                  {/* Eski kategori sayfalarına gelen istekleri tüm ürünler sayfasına yönlendir */}
+                  <Route path="/Ayakkabilar" element={<Navigate to="/urunler?kategori=ayakkabılar" replace />} />
+                  <Route path="/Canta" element={<Navigate to="/urunler?kategori=çantalar" replace />} />
+                  <Route path="/Gozlukler" element={<Navigate to="/urunler?kategori=gözlükler" replace />} />
+                  <Route path="/CuzdanKartlik" element={<Navigate to="/urunler?kategori=cüzdan-kartlık" replace />} />
+                  <Route path="/Sallar" element={<Navigate to="/urunler?kategori=şallar" replace />} />
+                  {/* Diğer sayfalar */}
+                  <Route path="/ProductDetail/:id" element={<ProductDetail />} />
+                  <Route path="/Account" element={<Account />} />
+                  <Route path="/Siparisler" element={<Siparisler />} />
+                  <Route path="/HesapOzeti" element={<HesapOzeti />} />
+                </Routes>
+              </SiteLayout>
+            }
+          />
+          {/* Login sayfası */}
+          <Route path="/login" element={<Login />} />
+          {/* Dashboard için ayrı layout */}
+          <Route
+            path="/dashboard/*"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/urun-listeleme"  
+            element={<UrunListeleme />}
+          />
+          <Route
+            path="/satistaki-urunler"
+            element={<SatistakiUrunler />}
+          />
+          <Route
+            path="/siparisler"
+            element={<Siparisler />}
+          />
+          <Route
+            path="/varyasyon-ayarlar"
+            element={<VaryasyonAyarlar />}
+          />
+          <Route
+            path="/HesapGuvenligi"
+            element={<HesapGuvenligi />}
+          />
+          <Route
+            path="/HesapOzeti"
+            element={<HesapOzeti />}
+          />
+        </Routes>
+      </UserProvider>
+    </CartProvider>
   )
 }
 
