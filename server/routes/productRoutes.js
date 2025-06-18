@@ -8,6 +8,9 @@ router.post('/', productController.createProduct);
 // Tüm ürünleri getir
 router.get('/', productController.getAllProducts);
 
+// Ürün arama
+router.get('/search', productController.searchProducts);
+
 // Ürünü sil
 router.delete('/:id', productController.deleteProduct);
 

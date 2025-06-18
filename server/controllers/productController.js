@@ -1,4 +1,4 @@
-const { insertProduct, deleteProduct, updateProductStatus, getProductById, getAllProductsWithCategory, getProductsByCategory } = require('../models/Product'); // Yeni fonksiyonları import ettim
+const { insertProduct, deleteProduct, updateProductStatus, getProductById, getAllProductsWithCategory, getProductsByCategory, searchProducts } = require('../models/Product'); // Yeni fonksiyonları import ettim
 const { toProductOpsiyon } = require('../models/ProductOpsiyon'); // Opsiyon ekleme fonksiyonunu import et
 
 // Ürün ekleme fonksiyonu (MSSQL)
@@ -112,5 +112,33 @@ exports.getProductById = async (req, res) => {
   } catch (error) {
     console.error('Ürün getirme hatası:', error);
     res.status(500).json({ success: false, message: 'Ürün getirilirken hata oluştu: ' + error.message });
+  }
+};
+
+// Ürün arama controller'ı
+exports.searchProducts = async (req, res) => {
+  try {
+    const { q } = req.query; // Arama sorgusu
+    
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Arama sorgusu en az 2 karakter olmalıdır' 
+      });
+    }
+
+    const products = await searchProducts(q.trim());
+    res.status(200).json({ 
+      success: true, 
+      products,
+      query: q,
+      count: products.length
+    });
+  } catch (error) {
+    console.error('Ürün arama hatası:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Arama sırasında hata oluştu: ' + error.message 
+    });
   }
 };

@@ -465,15 +465,15 @@ function Tumurunler() {
             {/* Ürün grid'i */}
             <div className="products-recommendation-wrapper">
                 <div className="products-grid">
-                    {Array.from({ length: Math.ceil(sortedProducts.length / 21) }).map((_, pageIndex) => (
+                    {Array.from({ length: Math.ceil(sortedProducts.length / 40) }).map((_, pageIndex) => (
                         <div key={pageIndex} className="products-page">
-                            {sortedProducts.slice(pageIndex * 21, (pageIndex + 1) * 21).map((product, index) => (
+                            {sortedProducts.slice(pageIndex * 40, (pageIndex + 1) * 40).map((product, index) => (
                                 <div key={product.id} className="product-card" style={{ width: '100%', margin: 0 }}>
                                     <div className="product-card-wrapper">
                                         <div className="product-card-image" style={{ cursor: 'pointer' }}>
                                             <img 
                                                 src={product.resim.startsWith('http') ? product.resim : `http://localhost:5000${product.resim}`} 
-                                                alt={product.baslik} 
+                                                 alt={product.baslik} 
                                             />
                                             <div className="hover-detay">
                                                 <button
@@ -483,7 +483,19 @@ function Tumurunler() {
                                                 >
                                                     SEPETE EKLE
                                                 </button>
-                                                <div className="urun-incele" style={{ cursor: 'pointer' }} onClick={e => { e.stopPropagation(); navigate(`/product/${product.id}`); }}>
+                                                <div 
+                                                    className="urun-incele" 
+                                                    style={{ cursor: 'pointer' }} 
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        // Ürün ID'si ile ProductDetail sayfasına yönlendirme
+                                                        if (product && product.id) {
+                                                            navigate(`/product/${product.id}`);
+                                                        } else {
+                                                            console.error('Ürün ID bulunamadı:', product);
+                                                        }
+                                                    }}
+                                                >
                                                     <span>ÜRÜNÜ İNCELE</span>
                                                     <svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                         <path d="M1 5.5H11M11 5.5L6 0.5M11 5.5L6 10.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"></path>

@@ -23,7 +23,8 @@ import { CartProvider } from './context/CartContext'
 // SiteLayout: Header ve Footer'ı saran layout
 const SiteLayout = ({ children }) => (
   <>
-    <Header />
+    <Pagecontainer><Header /></Pagecontainer>
+    
     <Pagecontainer>
       {children}
     </Pagecontainer>
@@ -52,8 +53,9 @@ function App() {
                   <Route path="/Gozlukler" element={<Navigate to="/urunler?kategori=gözlükler" replace />} />
                   <Route path="/CuzdanKartlik" element={<Navigate to="/urunler?kategori=cüzdan-kartlık" replace />} />
                   <Route path="/Sallar" element={<Navigate to="/urunler?kategori=şallar" replace />} />
+                  {/* Ürün detay sayfası */}
+                  <Route path="/product/:id" element={<ProductDetail />} />
                   {/* Diğer sayfalar */}
-                  <Route path="/ProductDetail/:id" element={<ProductDetail />} />
                   <Route path="/Account" element={<Account />} />
                   <Route path="/Siparisler" element={<Siparisler />} />
                   <Route path="/HesapOzeti" element={<HesapOzeti />} />

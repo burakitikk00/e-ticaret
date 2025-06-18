@@ -13,7 +13,7 @@ import { useCart } from '../context/CartContext';
 function Header() {
     const navigate = useNavigate();
     const [showBagMenu, setShowBagMenu] = useState(false);
-    const [isSticky, setIsSticky] = useState(false);
+    const [isSticky, setIsSticky] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [showSidebarBagMenu, setShowSidebarBagMenu] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -35,22 +35,12 @@ function Header() {
     const [loginUsername, setLoginUsername] = useState('');
     const [loginType, setLoginType] = useState('email');
     const [registerUsername, setRegisterUsername] = useState('');
-
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 0) {
-                setIsSticky(true);
-            } else {
-                setIsSticky(false);
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
+    
+    // Arama için yeni state'ler
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -58,7 +48,12 @@ function Header() {
                 setLoading(true);
                 const response = await axios.get('http://localhost:5000/api/categories');
                 if (response.data.success) {
-                    setCategories(response.data.data);
+                    // Yeni Gelenler ve Çok Satılanlar kategorilerini filtrele
+                    const filteredCategories = response.data.data.filter(category => 
+                        category.CategoriesName.toLowerCase() !== 'yeni gelenler' && 
+                        category.CategoriesName.toLowerCase() !== 'çok satılanlar'
+                    );
+                    setCategories(filteredCategories);
                 } else {
                     setError('Kategoriler yüklenirken bir hata oluştu');
                 }
@@ -243,6 +238,57 @@ function Header() {
         return `${productId}-${v1}-${v2}`;
     };
 
+    // Ürün arama fonksiyonu
+    const handleSearch = async (query) => {
+        if (query.length < 3) {
+            setSearchResults([]);
+            setShowSearchResults(false);
+            return;
+        }
+
+        try {
+            setIsSearching(true);
+            const response = await axios.get(`http://localhost:5000/api/products/search?q=${encodeURIComponent(query)}`);
+            if (response.data.success) {
+                setSearchResults(response.data.products.slice(0, 8)); // İlk 8 sonucu göster
+                setShowSearchResults(true);
+            }
+        } catch (error) {
+            console.error('Arama hatası:', error);
+            setSearchResults([]);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    // Arama input değişikliği
+    const handleSearchInputChange = (e) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+        
+        if (query.length >= 3) {
+            handleSearch(query);
+        } else {
+            setSearchResults([]);
+            setShowSearchResults(false);
+        }
+    };
+
+    // Arama sonucuna tıklama
+    const handleSearchResultClick = (product) => {
+        setSearchQuery('');
+        setShowSearchResults(false);
+        setSearchResults([]);
+        navigate(`/product/${product.id || product.ProductID}`);
+    };
+
+    // Arama dropdown'ını kapatma
+    const handleSearchBlur = () => {
+        setTimeout(() => {
+            setShowSearchResults(false);
+        }, 200);
+    };
+
     return (
         <div style={{
             display: 'flex',
@@ -262,18 +308,22 @@ function Header() {
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                justifyContent: 'center',
                 width: '100%',
                 maxWidth: '100%',
                 position: 'relative',
-                padding: '10px'
+                padding: '8px 10px'
             }}>
                 {/* Mobil menü butonu */}
                 <button className="menu-toggle" onClick={toggleSidebar}>
                     <FaBars />
                 </button>
 
-                <div className='flex-row' style={{ flex: '0 0 auto' , marginRight:'10px' }}>
+                <div 
+                    className='flex-row' 
+                    style={{ flex: '0 0 auto' , marginRight:'8px', cursor: 'pointer' }}
+                    onClick={() => navigate('/')}
+                >
                     <img className="logo" src="./src/Images/logo.jpg" alt="logo" />
                     <p className='logo-text'>Lina Çanta</p>
                 </div>
@@ -337,115 +387,109 @@ function Header() {
                 <div style={{
                     position: 'fixed',
                     top: 0,
-                    right: isCartOpen ? 0 : '-400px',
-                    width: 400,
-                    height: '93vh',
+                    right: isCartOpen ? 0 : '-300px',
+                    width: 300,
+                    height: '97vh',
                     background: '#fff',
                     boxShadow: '-2px 0 8px rgba(0,0,0,0.1)',
                     zIndex: 2000,
                     transition: 'right 0.3s',
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: 24,
-                    visibility: isCartOpen ? 'visible' : 'hidden',
-                    marginBottom: '10vh'
+                    padding: 16,
+                    visibility: isCartOpen ? 'visible' : 'hidden'
                 }}>
-                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
-                        <h2 style={{margin:0, fontSize:22}}>Sepetim</h2>
-                        <button onClick={() => setIsCartOpen(false)} style={{background:'none', border:'none', fontSize:24, cursor:'pointer'}}><FaTimes /></button>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+                        <h2 style={{margin:0, fontSize:18}}>Sepetim</h2>
+                        <button onClick={() => setIsCartOpen(false)} style={{background:'none', border:'none', fontSize:20, cursor:'pointer'}}><FaTimes /></button>
                     </div>
                     <div style={{flex:1, overflowY:'auto'}}>
                         {cartItems.length === 0 ? (
-                            <p>Sepetiniz boş.</p>
+                            <p style={{fontSize: 14}}>Sepetiniz boş.</p>
                         ) : (
                             cartItems.map((item, index) => {
                                 const productData = item.product || item;
-                                const itemKey = createCartItemKey(item); // item.key yerine createCartItemKey kullanıyoruz
+                                const itemKey = createCartItemKey(item);
 
-                                // productData veya productData.id/ProductID undefined ise bu item'ı atla
                                 if (!productData || (!productData.id && !productData.ProductID)) {
                                     console.error('Sepette eksik/hatalı ürün verisi:', item);
                                     return null; 
                                 }
 
                                 return (
-                                    <div key={itemKey} style={{display:'flex', alignItems:'center', marginBottom:16, borderBottom:'1px solid #eee', paddingBottom:8}}>
+                                    <div key={itemKey} style={{display:'flex', alignItems:'center', marginBottom:12, borderBottom:'1px solid #eee', paddingBottom:6}}>
                                         <img 
                                             src={productData.resim || productData.ImageURL}
                                             alt={productData.baslik || productData.ProductName || 'Ürün Görseli'}
-                                            style={{width:60, height:60, objectFit:'cover', borderRadius:8, marginRight:12}}
+                                            style={{width:50, height:50, objectFit:'cover', borderRadius:6, marginRight:10}}
                                         />
                                         <div style={{flex:1}}>
-                                            <div style={{fontWeight:'bold'}}>{productData.baslik || productData.ProductName || 'Ürün Adı'}</div>
-                                            {/* Varyasyon bilgileri (sadece yeni yapıda varsa) */}
+                                            <div style={{fontWeight:'bold', fontSize: 13}}>{productData.baslik || productData.ProductName || 'Ürün Adı'}</div>
                                             {item.selectedVaryasyon1 || item.selectedVaryasyon2 ? (
-                                                <div style={{fontSize: 12, color: '#555', marginTop: '4px'}}>
+                                                <div style={{fontSize: 11, color: '#555', marginTop: '2px'}}>
                                                     {item.selectedVaryasyon1 && <span>{item.selectedVaryasyon1}</span>}
                                                     {item.selectedVaryasyon1 && item.selectedVaryasyon2 && <span> - </span>}
                                                     {item.selectedVaryasyon2 && <span>{item.selectedVaryasyon2}</span>}
                                                 </div>
                                             ) : null}
-                                            <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px'}}>
+                                            <div style={{display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px'}}>
                                                 <button 
                                                     onClick={() => {
-                                                        // Eğer miktar 1'den büyükse azaltma işlemini yap
                                                         if ((item.quantity || 0) > 1) {
                                                             updateQuantity(itemKey, (item.quantity || 0) - 1);
                                                         }
                                                     }}
                                                     style={{
-                                                        background: (item.quantity || 0) <= 1 ? '#e0e0e0' : '#f0f0f0', // 1 veya daha az ise butonu soluk göster
+                                                        background: (item.quantity || 0) <= 1 ? '#e0e0e0' : '#f0f0f0',
                                                         border: 'none',
-                                                        borderRadius: '4px',
-                                                        cursor: (item.quantity || 0) <= 1 ? 'not-allowed' : 'pointer', // 1 veya daha az ise cursor'ı değiştir
-                                                        padding: '12px 12px',
-                                                        opacity: (item.quantity || 0) <= 1 ? 0.5 : 1 // 1 veya daha az ise butonu soluk göster
+                                                        borderRadius: '3px',
+                                                        cursor: (item.quantity || 0) <= 1 ? 'not-allowed' : 'pointer',
+                                                        padding: '8px 10px',
+                                                        opacity: (item.quantity || 0) <= 1 ? 0.5 : 1
                                                     }}
-                                                    disabled={(item.quantity || 0) <= 1} // 1 veya daha az ise butonu devre dışı bırak
+                                                    disabled={(item.quantity || 0) <= 1}
                                                 >-</button>
-                                                <span style={{color:'#888', fontSize:14}}>{item.quantity || 0}</span>
+                                                <span style={{color:'#888', fontSize:12}}>{item.quantity || 0}</span>
                                                 <button 
                                                     onClick={() => updateQuantity(itemKey, (item.quantity || 0) + 1)}
                                                     style={{
                                                         background: '#f0f0f0',
                                                         border: 'none',
-                                                        borderRadius: '4px',
+                                                        borderRadius: '3px',
                                                         cursor: 'pointer',
-                                                        padding: '12px 12px'
+                                                        padding: '8px 10px'
                                                     }}
                                                 >+</button>
                                             </div>
                                         </div>
-                                        <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
-                                            <div style={{fontWeight:'bold'}}>
-                                                {/* Fiyatı productData.fiyat veya productData.BasePrice üzerinden alıyoruz */}
+                                        <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                                            <div style={{fontWeight:'bold', fontSize: 12}}>
                                                 {typeof productData.fiyat === 'string' 
                                                     ? productData.fiyat 
                                                     : `₺${(productData.fiyat || productData.BasePrice || 0)?.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
                                             </div>
-                                            <button onClick={() => removeFromCart(itemKey)} style={{background:'none', border:'none', color:'#d00', fontSize:20, cursor:'pointer'}}><FaTimes /></button> 
+                                            <button onClick={() => removeFromCart(itemKey)} style={{background:'none', border:'none', color:'#d00', fontSize:16, cursor:'pointer'}}><FaTimes /></button> 
                                         </div>
                                     </div>
                                 );
                             })
                         )}
                     </div>
-                    <div style={{borderTop:'1px solid #eee', paddingTop:16}}>
-                        <div style={{display:'flex', justifyContent:'space-between', fontWeight:'bold', fontSize:18, marginBottom:12}}>
+                    <div style={{borderTop:'1px solid #eee', paddingTop:12}}>
+                        <div style={{display:'flex', justifyContent:'space-between', fontWeight:'bold', fontSize:16, marginBottom:10}}>
                             <span>Toplam:</span>
-                            {/* Toplam fiyatı getTotalPrice fonksiyonu hesaplıyor */}
                             <span>₺{getTotalPrice().toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                         </div>
                         <div>
                             <button style={{
                                 width:'100%',
-                                padding: '12px',
+                                padding: '10px',
                                 background:'#222',
                                 color:'#fff',
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                fontSize: '16px'
+                                fontSize: '14px'
                             }}>
                                 Alışverişi Tamamla
                             </button>
@@ -453,15 +497,83 @@ function Header() {
                     </div>
                 </div>
 
-                <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center' }}>
-                    <input className='search-input' type="text" placeholder='Ürün arayın ' />
+                {/* Sepet ve Menü dışına tıklayınca kapanma için overlay */}
+                {(isCartOpen || isSidebarOpen) && (
+                    <div 
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0,0,0,0.3)',
+                            zIndex: 1999,
+                            cursor: 'pointer'
+                        }}
+                        onClick={() => {
+                            setIsCartOpen(false);
+                            setIsSidebarOpen(false);
+                        }}
+                    />
+                )}
+
+                <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ position: 'relative' }}>
+                        <input 
+                            className='search-input' 
+                            type="text" 
+                            placeholder='Ürün arayın' 
+                            value={searchQuery}
+                            onChange={handleSearchInputChange} 
+                            onBlur={handleSearchBlur} 
+                        />
+                        
+                        {/* Arama Sonuçları Dropdown */}
+                        {showSearchResults && (
+                            <div className="search-results-dropdown">
+                                {isSearching ? (
+                                    <div className="search-loading">
+                                        Aranıyor...
+                                    </div>
+                                ) : searchResults.length > 0 ? (
+                                    searchResults.map((product, index) => (
+                                        <div 
+                                            key={index}
+                                            className="search-result-item"
+                                            onClick={() => handleSearchResultClick(product)}
+                                        >
+                                            <img 
+                                                src={product.resim || product.ImageURL} 
+                                                alt={product.baslik || product.ProductName}
+                                                className="search-result-image"
+                                            />
+                                            <div className="search-result-info">
+                                                <div className="search-result-title">
+                                                    {product.baslik || product.ProductName}
+                                                </div>
+                                                <div className="search-result-price">
+                                                    {typeof product.fiyat === 'string' 
+                                                        ? product.fiyat 
+                                                        : `₺${(product.fiyat || product.BasePrice || 0)?.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : searchQuery.length >= 3 ? (
+                                    <div className="search-no-results">
+                                        Sonuç bulunamadı
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
+                    </div>
                     
                     {user ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span 
                                 onClick={() => navigate('/account')} 
                                 style={{ 
-                                    fontSize: '14px', 
+                                    fontSize: '12px',
                                     color: '#666',
                                     cursor: 'pointer',
                                     textDecoration: 'underline',
@@ -483,13 +595,13 @@ function Header() {
                                     cursor: 'pointer',
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: '5px',
+                                    gap: '3px',
                                     color: '#666',
-                                    fontSize: '14px'
+                                    fontSize: '12px'
                                 }}
                             >
-                                <CiLogin style={{ fontSize: '20px' }} />
-                                Çıkış Yap
+                                <CiLogin style={{ fontSize: '16px' }} />
+                                Çıkış
                             </button>
                         </div>
                     ) : (
@@ -501,13 +613,13 @@ function Header() {
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '5px',
+                                gap: '3px',
                                 color: '#666',
-                                fontSize: '14px'
+                                fontSize: '12px'
                             }}
                         >
-                            <CiLogin style={{ fontSize: '20px' }} />
-                            Giriş Yap
+                            <CiLogin style={{ fontSize: '16px' }} />
+                            Giriş
                         </button>
                     )}
                     
@@ -539,7 +651,7 @@ function Header() {
                         setLoginUsername={setLoginUsername}
                     />
 
-                    <div style={{ position: 'relative', marginLeft: '10px', marginRight: '20px' }}>
+                    <div style={{ position: 'relative', marginLeft: '5px' }}>
                         <FaShoppingBag className='icons' style={{ cursor: 'pointer' }} onClick={() => setIsCartOpen(true)} />
                         {cartItems.length > 0 && (
                             <span style={{ 
@@ -549,9 +661,9 @@ function Header() {
                                 background: '#d00', 
                                 color: '#fff', 
                                 borderRadius: '50%', 
-                                fontSize: 12, 
-                                width: 20, 
-                                height: 20, 
+                                fontSize: 10,
+                                width: 18,
+                                height: 18,
                                 display: 'flex', 
                                 alignItems: 'center', 
                                 justifyContent: 'center' 

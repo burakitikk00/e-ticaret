@@ -1,3 +1,6 @@
+
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import '../css/ProductDetail.css';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -11,7 +14,9 @@ function ProductDetail() {
     const { addToCart } = useCart();
     const [mainImage, setMainImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
-    const [selectedOption, setSelectedOption] = useState('');
+    const [selectedVaryasyon1, setSelectedVaryasyon1] = useState('');
+    const [selectedVaryasyon2, setSelectedVaryasyon2] = useState('');
+    const [varyasyonlar, setVaryasyonlar] = useState([]);
     const [activeAccordion, setActiveAccordion] = useState(null);
     const [isZoomed, setIsZoomed] = useState(false);
     const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
@@ -24,26 +29,58 @@ function ProductDetail() {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [modalProduct, setModalProduct] = useState(null);
 
-    const productImages = [
-        'https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp',
-        'https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp',
-        'https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp',
-        'https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp'
-    ];
+    // Ürün resimlerini state olarak tut
+    const [productImages, setProductImages] = useState([]);
 
-    const productOptions = [
-        'Seçenek 1',
-        'Seçenek 2',
-        'Seçenek 3'
-    ];
+    // Ürün varyasyonlarını çek
+    useEffect(() => {
+        if (id) {
+            axios.get(`http://localhost:5000/api/urunvaryasyonbilgi/${id}`)
+                .then(res => {
+                    setVaryasyonlar(res.data);
+                    // Varyasyonları yüklerken seçimleri sıfırla
+                    setSelectedVaryasyon1('');
+                    setSelectedVaryasyon2('');
+                })
+                .catch(error => {
+                    console.error('Varyasyonlar yüklenirken hata:', error);
+                    setVaryasyonlar([]);
+                });
+        }
+    }, [id]);
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
                 setLoading(true);
                 const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+                console.log('API yanıtı:', response.data);
+                
                 if (response.data.success) {
-                    setProduct(response.data.product);
+                    const productData = response.data.product;
+                    
+                    // Ürün resimlerini ayarla
+                    const images = productData.ImageURL 
+                        ? (Array.isArray(productData.ImageURL) 
+                            ? productData.ImageURL 
+                            : [productData.ImageURL])
+                        : ['https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp'];
+                    
+                    setProductImages(images);
+                    
+                    // Opsiyonları parse et
+                    const opsiyonlar = productData.Opsiyonlar ? productData.Opsiyonlar.split(', ') : [];
+                    const opsiyonFiyatlari = productData.OpsiyonFiyatlari ? productData.OpsiyonFiyatlari.split(', ').map(Number) : [];
+                    
+                    // Ürün verisini düzenle
+                    const formattedProduct = {
+                        ...productData,
+                        opsiyonlar: opsiyonlar,
+                        opsiyonFiyatlari: opsiyonFiyatlari,
+                        fiyat: `${productData.BasePrice} ${productData.Currency || '₺'}`
+                    };
+                    
+                    setProduct(formattedProduct);
                 } else {
                     setError('Ürün bilgileri yüklenirken bir hata oluştu');
                 }
@@ -86,8 +123,9 @@ function ProductDetail() {
         if (product) {
             const itemToAdd = {
                 product: product,
-                selectedVaryasyon1: selectedOption,
-                quantity: quantity
+                selectedVaryasyon1: selectedVaryasyon1,
+                selectedVaryasyon2: selectedVaryasyon2,
+                quantity: quantity // Seçilen adet miktarını ekle
             };
             
             console.log('Ürün Detay: Sepete eklenecek ürün:', itemToAdd);
@@ -152,54 +190,93 @@ function ProductDetail() {
                 >
                     <img
                         ref={imageRef}
-                        src={productImages[mainImage]}
-                        alt="Ürün"
+                        src={productImages[mainImage].startsWith('http') ? productImages[mainImage] : `http://localhost:5000${productImages[mainImage]}`}
+                        alt={product.ProductName || product.baslik}
                         className={`main-image ${isZoomed ? 'zoomed' : ''}`}
                         style={{
                             transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
                             transform: isZoomed ? 'scale(2)' : 'scale(1)'
                         }}
                     />
-                    <button className="nav-button prev" onClick={() => handleImageChange('prev')}>❮</button>
-                    <button className="nav-button next" onClick={() => handleImageChange('next')}>❯</button>
+                    {productImages.length > 1 && (
+                        <>
+                            <button className="nav-button prev" onClick={() => handleImageChange('prev')}>❮</button>
+                            <button className="nav-button next" onClick={() => handleImageChange('next')}>❯</button>
+                        </>
+                    )}
                 </div>
-                <div className="thumbnail-container">
-                    {productImages.map((image, index) => (
-                        <img
-                            key={index}
-                            src={image}
-                            alt={`Ürün ${index + 1}`}
-                            className={`thumbnail ${mainImage === index ? 'active' : ''}`}
-                            onClick={() => setMainImage(index)} />
-                    ))}
-                </div>
+                {productImages.length > 1 && (
+                    <div className="thumbnail-container">
+                        {productImages.map((image, index) => (
+                            <img
+                                key={index}
+                                src={image.startsWith('http') ? image : `http://localhost:5000${image}`}
+                                alt={`${product.ProductName || product.baslik} ${index + 1}`}
+                                className={`thumbnail ${mainImage === index ? 'active' : ''}`}
+                                onClick={() => setMainImage(index)}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="product-info">
-                <h1 className="product-title">{product.baslik || product.ProductName}</h1>
-                <p className="product-price">{product.fiyat || (product.BasePrice + ' ' + (product.Currency || '₺'))}</p>
+                <h1 className="product-title">{product.ProductName || product.baslik}</h1>
+                <p className="product-price">{product.fiyat}</p>
                 <p className="product-guide">Ürün Rehberi</p>
 
-                <div className="product-options">
-                    <select
-                        value={selectedOption}
-                        onChange={(e) => setSelectedOption(e.target.value)}
-                        className="option-select"
-                    >
-                        <option value="">Seçenek Seçin</option>
-                        {productOptions.map((option, index) => (
-                            <option key={index} value={option}>{option}</option>
-                        ))}
-                    </select>
-                </div>
+                {/* Varyasyon seçim alanı */}
+                {varyasyonlar.length > 0 && (
+                    <>
+                        {/* 1. Varyasyon Seçimi */}
+                        <div style={{marginBottom: '1rem'}}>
+                            <label className="variation-label">{varyasyonlar[0].Varyasyon1}</label>
+                            <select
+                                className="variation-select"
+                                value={selectedVaryasyon1}
+                                onChange={e => setSelectedVaryasyon1(e.target.value)}
+                            >
+                                <option value="">Seçiniz</option>
+                                {[...new Set(varyasyonlar.map(v => v.Options1))].map(opt => (
+                                    <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                <div className="quantity-selector">
+                        {/* 2. Varyasyon Seçimi (Eğer varyasyon2 bilgisi varsa) */}
+                        {varyasyonlar[0].varyasyon2 && (
+                            <div style={{marginBottom: '1rem'}}>
+                                <label className="variation-label">{varyasyonlar[0].varyasyon2}</label>
+                                <select
+                                    className="variation-select"
+                                    value={selectedVaryasyon2}
+                                    onChange={e => setSelectedVaryasyon2(e.target.value)}
+                                >
+                                    <option value="">Seçiniz</option>
+                                    {[...new Set(varyasyonlar.map(v => v.Options2))].filter(opt => opt && opt !== '').map(opt => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {/* Adet seçimi */}
+                <div className="quantity-selector" style={{marginTop: '1rem'}}>
                     <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
                     <span>{quantity}</span>
                     <button onClick={() => setQuantity(quantity + 1)}>+</button>
                 </div>
 
-                <button className="add-to-cart" onClick={handleAddToCart}>Sepete Ekle</button>
+                {/* Sepete Ekle butonu */}
+                <button 
+                    className="add-to-cart" 
+                    onClick={handleAddToCart}
+                    style={{marginTop: '1.5rem', width: '100%'}}
+                >
+                    SEPETE EKLE
+                </button>
 
                 <div className="accordion-container">
                     <div className="accordion-item">
@@ -211,7 +288,7 @@ function ProductDetail() {
                         </button>
                         {activeAccordion === 0 && (
                             <div className="accordion-content">
-                                Ürün açıklaması burada yer alacak.
+                                {product.Description || product.aciklama || 'Ürün açıklaması bulunmamaktadır.'}
                             </div>
                         )}
                     </div>
@@ -225,7 +302,9 @@ function ProductDetail() {
                         </button>
                         {activeAccordion === 1 && (
                             <div className="accordion-content">
-                                Teslimat ve iade bilgileri burada yer alacak.
+                                <p><strong>Kargo Tipi:</strong> {product.ShippingType || 'Standart Kargo'}</p>
+                                <p><strong>Kargo Ücreti:</strong> {product.ShippingCost ? `${product.ShippingCost} ₺` : 'Ücretsiz Kargo'}</p>
+                                <p><strong>İade Koşulları:</strong> 14 gün içinde ücretsiz iade hakkı</p>
                             </div>
                         )}
                     </div>

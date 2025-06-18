@@ -196,6 +196,39 @@ async function getProductById(productId) {
     }
 }
 
+// Ürün arama fonksiyonu
+async function searchProducts(searchQuery) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('SearchQuery', sql.NVarChar, `%${searchQuery}%`)
+            .query(`
+                SELECT 
+                    p.*,
+                    c.CategoriesName,
+                    STRING_AGG(po.OpsiyonName, ', ') as Opsiyonlar,
+                    STRING_AGG(po.OpsiyonPrice, ', ') as OpsiyonFiyatlari
+                FROM dbo.Products p
+                LEFT JOIN dbo.ProductCategories pc ON p.ProductID = pc.ProductID
+                LEFT JOIN dbo.Categories c ON pc.CategoriesID = c.CategoriesID
+                LEFT JOIN dbo.ProductOpsiyon po ON p.ProductID = po.ProductID
+                WHERE p.Status = 1 
+                AND (p.ProductName LIKE @SearchQuery OR p.Description LIKE @SearchQuery)
+                GROUP BY 
+                    p.ProductID, p.ProductName, p.Description, p.BasePrice, 
+                    p.Currency, p.Stock, p.ShippingType, p.ShippingCost, 
+                    p.ProductType, p.Language, p.IsDiscounted, p.ImageURL,
+                    p.CreatedAt, p.UpdatedAt, p.Status,
+                    c.CategoriesName
+                ORDER BY p.ProductName
+            `);
+        return result.recordset;
+    } catch (err) {
+        console.error('Ürün arama hatası:', err);
+        throw err;
+    }
+}
+
 module.exports = {
     insertProduct,
     getAllProducts,
@@ -204,4 +237,5 @@ module.exports = {
     deleteProduct,
     updateProductStatus,
     getProductById,
+    searchProducts
 };

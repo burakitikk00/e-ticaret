@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext';
 
 function Cantalar() {
     const { addToCart } = useCart();
+    
     // Özel ok bileşenlerini ayrı fonksiyonlar olarak tanımlıyoruz
     const NextArrow = ({ onClick }) => (
         <button className="slick-arrow slick-next" onClick={onClick} aria-label="Next" type="button">
@@ -29,61 +30,82 @@ function Cantalar() {
         </button>
     );
 
-    const [products, setProducts] = useState([
-        {
-            id: 1,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 1",
-            fiyat: "₺999.90"
-        },
-        {
-            id: 2,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 2",
-            fiyat: "₺899.90"
-        },
-        {
-            id: 3,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 3",
-            fiyat: "₺799.90"
-        },
-        {
-            id: 4,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 4",
-            fiyat: "₺699.90"
-        },
-        {
-            id: 5,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 5",
-            fiyat: "₺599.90"
-        },
-        {
-            id: 6,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 6",
-            fiyat: "₺499.90"
-        },
-        {
-            id: 7,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 7",
-            fiyat: "₺499.90"
-        },
-        {
-            id: 8,
-            resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-            baslik: "Örnek Ürün Adı 8",
-            fiyat: "₺499.90"
-        }
-    ]);
+    // Ürünler state'i - başlangıçta boş array
+    const [products, setProducts] = useState([]);
     const navigate = useNavigate();
 
     // Modal için state'ler
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [modalProduct, setModalProduct] = useState(null);
+
+    // Ürünleri API'den çek
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                // "kategori=çantalar" parametresiyle ürünleri çekiyoruz
+                const response = await axios.get('http://localhost:5000/api/products?kategori=çantalar');
+                if (response.data.success) {
+                    // İlk 8 ürünü al
+                    const limitedProducts = response.data.products.slice(0, 8);
+                    setProducts(limitedProducts);
+                }
+            } catch (error) {
+                console.error('Çantalar yüklenirken hata:', error);
+                // Hata durumunda örnek ürünler göster
+                setProducts([
+                    {
+                        id: 1,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 1",
+                        fiyat: "₺999.90"
+                    },
+                    {
+                        id: 2,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 2",
+                        fiyat: "₺899.90"
+                    },
+                    {
+                        id: 3,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 3",
+                        fiyat: "₺799.90"
+                    },
+                    {
+                        id: 4,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 4",
+                        fiyat: "₺699.90"
+                    },
+                    {
+                        id: 5,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 5",
+                        fiyat: "₺599.90"
+                    },
+                    {
+                        id: 6,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 6",
+                        fiyat: "₺499.90"
+                    },
+                    {
+                        id: 7,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 7",
+                        fiyat: "₺399.90"
+                    },
+                    {
+                        id: 8,
+                        resim: "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                        baslik: "Örnek Çanta 8",
+                        fiyat: "₺299.90"
+                    }
+                ]);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const settings = {
         dots: false,
@@ -102,22 +124,6 @@ function Cantalar() {
             }
         ]
     };
-
-    // Ürünleri API'den çek
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                // "kategori=çantalar" parametresiyle ürünleri çekiyoruz
-                const response = await axios.get('http://localhost:5000/api/products?kategori=çantalar');
-                if (response.data.success) {
-                    setProducts(response.data.products);
-                }
-            } catch (error) {
-                console.error('Çantalar yüklenirken hata:', error);
-            }
-        };
-        fetchProducts();
-    }, []);
 
     return (
         <div className="products-recommendation-wrapper">
@@ -148,7 +154,7 @@ function Cantalar() {
                         <div className="product-card">
                             <div className="product-card-wrapper">
                                 <div className="product-card-image">
-                                    <img src={product.resim} alt={product.baslik} />
+                                    <img src={product.resim || product.ImageURL} alt={product.baslik || product.ProductName} />
                                     <div className="hover-detay">
                                         <button 
                                             type="button" 
@@ -168,13 +174,13 @@ function Cantalar() {
                             </div>
                         </div>
                         <div className="urun-bilgi">
-                            <a className="urun-baslik" href="#">{product.baslik}</a>
-                            <span className="urun-fiyat">{product.fiyat}</span>
+                            <a className="urun-baslik" href="#">{product.baslik || product.ProductName}</a>
+                            <span className="urun-fiyat">{product.fiyat || (product.BasePrice + ' ' + (product.Currency || '₺'))}</span>
                         </div>
                     </div>
                 ))}
             </Slider>
-            <a className="link" href="/Canta">Tümünü Gör</a>
+            <a className="link" href="/urunler?kategori=çantalar">Tümünü Gör</a>
         </div>
     );
 }

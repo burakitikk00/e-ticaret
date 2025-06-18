@@ -32,8 +32,13 @@ function LoginModal({
 
     return (
         showLoginModal && (
-            <div id="login-modal-overlay">
-                <div id="login-modal-container">
+            <div id="login-modal-overlay" onClick={() => {
+                setShowLoginModal(false);
+                setLoginError('');
+                setRegisterError('');
+                setRegisterSuccess('');
+            }}>
+                <div id="login-modal-container" onClick={(e) => e.stopPropagation()}>
                     <button 
                         id="login-modal-close" 
                         onClick={() => {
