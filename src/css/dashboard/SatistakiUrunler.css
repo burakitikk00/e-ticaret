@@ -62,7 +62,7 @@
   font-weight: 600;
 }
 .satistaki-islem-btn {
-  background: #00e6c3;
+  background: rgb(255, 0, 141);
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -73,7 +73,7 @@
   transition: background 0.2s;
 }
 .satistaki-islem-btn:hover {
-  background: #00bfae;
+  background: rgb(255, 0, 141);
 }
 .satistaki-islem-menu {
   position: absolute;
@@ -121,7 +121,7 @@
   background: #f0f0f0;
 }
 .satistaki-pagination-pages .active {
-  background: #00e6c3;
+  background: rgb(255, 0, 141);
   color: #fff;
 }
 /* Responsive Tasarım */

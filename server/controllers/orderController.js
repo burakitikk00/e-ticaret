@@ -1,4 +1,4 @@
-const { createOrder, getOrderById, getOrdersByUserId } = require('../models/Order');
+const { createOrder, getOrderById, getOrdersByUserId, getAllOrders } = require('../models/Order');
 const { addOrderItem, getOrderItemsByOrderId } = require('../models/OrderItem');
 
 // Sipariş oluşturma controller'ı
@@ -42,6 +42,46 @@ exports.getOrdersByUser = async (req, res) => {
         res.status(200).json({ success: true, orders: ordersWithItems });
     } catch (err) {
         console.error('Siparişleri getirme hatası:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// Admin için: Tüm siparişleri ve ürünlerini getirir
+exports.getAllOrders = async (req, res) => {
+    try {
+        const orders = await getAllOrders();
+        // Her siparişin ürünlerini getir
+        const ordersWithItems = await Promise.all(
+            orders.map(async (order) => {
+                const items = await getOrderItemsByOrderId(order.OrderID);
+                return {
+                    ...order,
+                    items
+                };
+            })
+        );
+        res.status(200).json({ success: true, orders: ordersWithItems });
+    } catch (err) {
+        console.error('Tüm siparişleri getirme hatası:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+};
+
+// Sipariş durumunu güncelle (örn: Teslim Edildi)
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+        if (!orderId || !status) {
+            return res.status(400).json({ success: false, error: 'Eksik parametre' });
+        }
+        const updated = await require('../models/Order').updateOrderStatus(orderId, status);
+        if (updated) {
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ success: false, error: 'Sipariş bulunamadı' });
+        }
+    } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 }; 

@@ -50,4 +50,30 @@ async function getOrdersByUserId(userId) {
     }
 }
 
-module.exports = { createOrder, getOrderById, getOrdersByUserId }; 
+// Tüm siparişleri getirir (admin için)
+async function getAllOrders() {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .query('SELECT * FROM Orders ORDER BY OrderDate DESC');
+        return result.recordset;
+    } catch (err) {
+        throw err;
+    }
+}
+
+// Siparişin durumunu güncelleyen fonksiyon
+async function updateOrderStatus(orderId, status) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('OrderID', sql.Int, orderId)
+            .input('OrderStatus', sql.NVarChar(20), status)
+            .query('UPDATE Orders SET OrderStatus = @OrderStatus WHERE OrderID = @OrderID');
+        return result.rowsAffected[0] > 0;
+    } catch (err) {
+        throw err;
+    }
+}
+
+module.exports = { createOrder, getOrderById, getOrdersByUserId, getAllOrders, updateOrderStatus }; 

@@ -22,7 +22,7 @@
   }
   
   .dashboard-siparis-row:hover {
-    background: #eafaf7;
+    background: rgba(255, 0, 140, 0.04);
   }
   
   .dashboard-dropdown {
@@ -31,7 +31,7 @@
   }
   
   .dashboard-islemler-btn {
-    background: #00e6c7;
+    background: rgb(255, 0, 141);
     color: #fff;
     border: none;
     padding: 10px 18px;
@@ -41,30 +41,30 @@
   }
   
   .dashboard-dropdown-content {
-    display: none;
     position: absolute;
+    top: 40px;
+    right: 0;
     background: #fff;
-    min-width: 220px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    z-index: 1;
     border-radius: 8px;
-    margin-top: 8px;
-  }
-  
-  .dashboard-dropdown-content.acik {
+    box-shadow: 0 2px 16px #0002;
+    min-width: 200px;
+    z-index: 1000;
+    padding: 8px 0;
     display: block;
   }
   
   .dashboard-dropdown-item {
-    padding: 12px 18px;
+    padding: 12px 20px;
+    font-size: 15px;
+    color: #222;
     cursor: pointer;
-    color: #7b8a99;
-    transition: background 0.2s;
+    transition: background 0.15s;
+    display: block;
+    width: 100%;
   }
   
   .dashboard-dropdown-item:hover {
-    background: #eafaf7;
-    color: #00bfae;
+    background: #48494a;
   }
   
   .dashboard-siparis-detay-row td {
@@ -109,7 +109,7 @@
     font-weight: bold;
     border-radius: 6px 6px 0 0;
   }  .dashboard-siparis-sekmeler .aktif {
-    background: #00e6c3;
+    background: rgb(255, 0, 141);
     color: #222;
   }  .dashboard-siparis-sekme-icerik {
     background: #fff;
@@ -125,6 +125,36 @@
     padding: 32px 24px;
     box-shadow: 0 2px 16px rgba(0,0,0,0.06);
   }
+
+.dashboard-dropdown-content .dashboard-dropdown-item,
+.dashboard-dropdown-content a.dashboard-dropdown-item {
+  display: block;
+  width: 100%;
+}
+
+.dashboard-siparisler-table td {
+  position: relative;
+}
+
+@media (max-width: 744px) {
+  .dashboard-dropdown-content {
+    position: fixed;
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    min-width: 90%;
+    z-index: 1000;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px #0003;
+  }
+  .dashboard-dropdown-item {
+    padding: 16px 20px;
+    font-size: 15px;
+    text-align: center;
+  }
+}
 
 
 

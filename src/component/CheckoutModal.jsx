@@ -169,7 +169,7 @@ function CheckoutModal({ isOpen, onClose, onOrderComplete }) {
                 return;
             }
             // Teslimat bilgisini localStorage'a kaydet
-            localStorage.setItem('teslimatBilgisi', JSON.stringify(form));
+            localStorage.setItem('teslimatBilgisi', JSON.stringify({ ...form, KargoBedeli: kargoFiyati }));
         } else {
             // Kullanıcı giriş yaptıysa seçili adresi ve bilgileri kaydet
             const seciliAdres = addresses.find(a => a.id === selectedAddressId);
@@ -179,7 +179,8 @@ function CheckoutModal({ isOpen, onClose, onOrderComplete }) {
                     AdresID: seciliAdres.id,
                     not: newAddress.not || '',
                     email: user.email || '',
-                    telefon: seciliAdres.telefon || user.telefon || ''
+                    telefon: seciliAdres.telefon || user.telefon || '',
+                    KargoBedeli: kargoFiyati
                 }));
             }
         }
@@ -300,7 +301,7 @@ function CheckoutModal({ isOpen, onClose, onOrderComplete }) {
                         </div>
                         <div className="siparis-toplam">
                             <div className="ara-toplam">Ara toplam: ₺{getTotalPrice().toLocaleString('tr-TR', {minimumFractionDigits:2})}</div>
-                            <div className="kargo">Kargo: ₺{kargoFiyati.toLocaleString('tr-TR', {minimumFractionDigits:2})}</div>
+                            <div className="kargo">Kargo: ₺{(kargoFiyati).toLocaleString('tr-TR', {minimumFractionDigits:2})}</div>
                             <div className="genel-toplam"><b>Genel toplam: ₺{(getTotalPrice() + kargoFiyati).toLocaleString('tr-TR', {minimumFractionDigits:2})}</b></div>
                         </div>
                         <button className="siparisi-tamamla-btn" onClick={handleCompleteOrder}>Siparişi Tamamla</button>

@@ -2,65 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import "./../../css/dashboard/siparisler.css";
 import "../../css/Adreslerim.css"; // Modal için gerekli
 import { Link } from "react-router-dom"; // Link ekle
-
-// Örnek sipariş verisi
-export const initialSiparisler = [
-  {
-    no: "272934877",
-    durum: "AÇIK",
-    tarih: "17/05/2025 11:31",
-    musteri: "Serra Bahçıvan",
-    urun: "Coach Trail Çapraz Çanta",
-    tutar: "1.079,00 TL",
-    birimFiyat: "1.079,00 TL",
-    adet: 1,
-    toplamFiyat: "1.079,00 TL",
-    adres: "Kiptaş Topkapı merkez evleri 2. Etap A-9 blok daire:58 Zeytinburnu İstanbul Türkiye",
-    telefon: "+90 531 237 08 37",
-    email: "serra.bahcivan@gmail.com",
-    musteriNotu: "-",
-    resim: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    opsiyon: "Toz Torbası",
-    kombinasyon: "37 Numara / Siyah",
-  },
-  {
-    no: "710253125",
-    durum: "KAPALI",
-    tarih: "19/05/2025 11:36",
-    musteri: "Merve Demir",
-    urun: "Mini vakko Speddy",
-    tutar: "1.559,98 TL",
-    birimFiyat: "779,99 TL",
-    adet: 2,
-    toplamFiyat: "1.559,98 TL",
-    adres: "Adres örneği",
-    telefon: "+90 555 111 22 33",
-    email: "merve.demir@gmail.com",
-    musteriNotu: "Hediye paketi olsun lütfen.",
-    resim: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    opsiyon: "Ekstra Askı",
-    kombinasyon: "Kırmızı / 36 Numara",
-  },
-  {
-    no: "613607977",
-    durum: "AÇIK",
-    tarih: "19/05/2025 19:05",
-    musteri: "Ayşenaz Alacücük",
-    urun: "Vakko Babet Ayakkabı",
-    tutar: "939,99 TL",
-    birimFiyat: "939,99 TL",
-    adet: 2,
-    toplamFiyat: "939,99 TL",
-    adres: "Ferahevler Adnan Kahveci caddesi no:106 Sarıyer İstanbul Türkiye",
-    telefon: "+90 541 801 78 95",
-    email: "alacucukaysenaz0@gmail.com",
-    musteriNotu: "Cumaya kadar yetişmesi lazım ürünü kullanacağım 😃",
-    resim: "https://images.unsplash.com/photo-1517260911205-8c1e1a0b6b8c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    opsiyon: "Toz Torbası, Ekstra Tabanlık",
-    kombinasyon: "37 Numara / Siyah",
-  },
-  // ... diğer siparişler
-];
+import axiosInstance from '../../utils/axiosConfig'; // API istekleri için axiosInstance'ı ekle
 
 // Adres modalı için boş adres şablonu
 const emptyAddress = {
@@ -72,29 +14,13 @@ const emptyAddress = {
   telefon: "",
 };
 
-const iller = [
-  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin", "Aydın", "Balıkesir",
-  "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli",
-  "Diyarbakır", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari",
-  "Hatay", "Isparta", "Mersin", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir",
-  "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş", "Nevşehir",
-  "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Tekirdağ", "Tokat",
-  "Trabzon", "Tunceli", "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
-  "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce"
-];
-
-const ilceler = {
-  "İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Avcılar", "Bağcılar", "Bahçelievler", "Bakırköy", "Başakşehir", "Bayrampaşa", "Beşiktaş", "Beykoz", "Beylikdüzü", "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Fatih", "Gaziosmanpaşa", "Güngören", "Kadıköy", "Kağıthane", "Kartal", "Küçükçekmece", "Maltepe", "Pendik", "Sancaktepe", "Sarıyer", "Silivri", "Sultanbeyli", "Sultangazi", "Şile", "Şişli", "Tuzla", "Ümraniye", "Üsküdar", "Zeytinburnu"],
-  "Ankara": ["Altındağ", "Çankaya", "Etimesgut", "Keçiören", "Mamak", "Sincan", "Yenimahalle", "Gölbaşı", "Polatlı", "Beypazarı", "Kahramankazan", "Söğütözü"],
-  "İzmir": ["Konak", "Karşıyaka", "Bornova", "Buca", "Çiğli", "Gaziemir", "Karabağlar", "Menemen", "Torbalı", "Urla"],
-  // Diğer iller eklenebilir
-};
-
 const Siparisler = () => {
-  const [siparisler, setSiparisler] = useState(initialSiparisler);
+  const [siparisler, setSiparisler] = useState([]);
   const [acikSiparis, setAcikSiparis] = useState(null);
   const [openMenu, setOpenMenu] = useState(null);
   const menuRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   // Sayfalama için state
   const [aktifSayfa, setAktifSayfa] = useState(1);
@@ -144,11 +70,19 @@ const Siparisler = () => {
   const getMailLink = (mail) => `mailto:${mail}`;
 
   // Siparişi kapat
-  const handleSiparisKapat = (index) => {
+  const handleSiparisKapat = async (index) => {
     const yeni = [...siparisler];
-    yeni[index].durum = "KAPALI";
+    const orderId = yeni[index].OrderID;
+    yeni[index].OrderStatus = "Teslim Edildi"; // Önce frontend'de güncelle
     setSiparisler(yeni);
     setOpenMenu(null);
+    // Backend'e PATCH isteği gönder
+    try {
+      await axiosInstance.patch(`/api/orders/${orderId}/status`, { status: "Teslim Edildi" });
+    } catch (err) {
+      // Hata olursa kullanıcıya bilgi ver
+      alert('Sipariş durumu backendde güncellenemedi!');
+    }
   };
 
   // Adres modalını aç
@@ -199,6 +133,27 @@ const Siparisler = () => {
     setAdresModal({ acik: false, index: null, adres: emptyAddress });
   };
 
+  // Sayfa yüklendiğinde siparişleri backend'den çek
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        // Admin için tüm siparişleri çekiyoruz
+        const res = await axiosInstance.get('/api/orders/all');
+        if (res.data.success) {
+          setSiparisler(res.data.orders);
+        } else {
+          setError('Siparişler alınamadı.');
+        }
+      } catch (err) {
+        setError('Siparişler alınırken hata oluştu.');
+      }
+      setLoading(false);
+    };
+    fetchOrders();
+  }, []);
+
   return (
     <div className="dashboard-siparisler-container">
       <div className="satistaki-baslik">SİPARİŞLER</div>
@@ -215,11 +170,19 @@ const Siparisler = () => {
           </tr>
         </thead>
         <tbody>
-          {aktifSayfaSiparisleri.map((siparis, i) => {
-            // i: aktif sayfadaki index, global indexi bulmak için:
+          {loading && (
+            <tr><td colSpan={7}>Yükleniyor...</td></tr>
+          )}
+          {error && (
+            <tr><td colSpan={7} style={{color:'red'}}>{error}</td></tr>
+          )}
+          {!loading && !error && aktifSayfaSiparisleri.length === 0 && (
+            <tr><td colSpan={7} style={{color:'#888'}}>Hiç sipariş yok.</td></tr>
+          )}
+          {!loading && !error && aktifSayfaSiparisleri.map((siparis, i) => {
             const globalIndex = (aktifSayfa - 1) * sayfaBasinaSiparis + i;
             return (
-              <React.Fragment key={siparis.no}>
+              <React.Fragment key={siparis.OrderID}>
                 <tr
                   className={acikSiparis === globalIndex ? "dashboard-siparis-row acik" : "dashboard-siparis-row"}
                   onClick={(e) => {
@@ -233,14 +196,17 @@ const Siparisler = () => {
                   }}
                   style={{ cursor: "pointer" }}
                 >
-                  <td data-label="SİPARİŞ NO">{siparis.no}</td>
-                  <td data-label="DURUM">{siparis.durum}</td>
-                  <td data-label="SİPARİŞ TARİHİ">{siparis.tarih}</td>
-                  <td data-label="MÜŞTERİ">{siparis.musteri}</td>
+                  <td data-label="SİPARİŞ NO">{siparis.OrderID}</td>
+                  <td data-label="DURUM">{siparis.OrderStatus}</td>
+                  <td data-label="SİPARİŞ TARİHİ">{new Date(siparis.OrderDate).toLocaleString('tr-TR')}</td>
+                  <td data-label="MÜŞTERİ">{siparis.Eposta || '-'}</td>
                   <td data-label="ÜRÜN ADI">
-                    <span className="satistaki-urun-adi">{siparis.urun}</span>
+                    <span className="satistaki-urun-adi">
+                      {siparis.items && siparis.items.length > 0 ? siparis.items[0].ProductName : '-'}
+                      {siparis.items && siparis.items.length > 1 ? ` +${siparis.items.length - 1}` : ''}
+                    </span>
                   </td>
-                  <td data-label="TOPLAM TUTAR">{siparis.tutar}</td>
+                  <td data-label="TOPLAM TUTAR">{siparis.TotalAmount ? Number(siparis.TotalAmount).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' }) : '-'}</td>
                   <td data-label="İŞLEMLER" style={{ position: "relative" }}>
                     <div style={{ display: "inline-block" }}>
                       <button
@@ -251,57 +217,64 @@ const Siparisler = () => {
                       </button>
                       {openMenu === globalIndex && (
                         <div className="dashboard-dropdown-content acik" ref={menuRef}>
-                          {siparis.durum === "AÇIK" && (
-                            <div
-                              className="dashboard-dropdown-item"
-                              onClick={() => handleSiparisKapat(globalIndex)}
-                            >
-                              Siparişi kapat
-                            </div>
-                          )}
                           <div
                             className="dashboard-dropdown-item"
-                            onClick={() => handleAdresDegistir(globalIndex)}
+                            onClick={() => handleSiparisKapat(globalIndex)}
                           >
-                            Teslimat adresini değiştir
+                            Siparişi kapat
                           </div>
-                          <a
-                            className="dashboard-dropdown-item"
-                            href={getWhatsappLink(siparis.telefon)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Müşteriye WhatsApp'tan ulaş
-                          </a>
-                          <a
-                            className="dashboard-dropdown-item"
-                            href={getMailLink(siparis.email)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Müşteriye e-posta gönder
-                          </a>
-                          <div className="dashboard-dropdown-item">Sipariş notu düzenle / görüntüle</div>
+                          {siparis.Telefon && (
+                            <a
+                              className="dashboard-dropdown-item"
+                              href={getWhatsappLink(siparis.Telefon)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Müşteriye WhatsApp'tan ulaş
+                            </a>
+                          )}
+                          {siparis.Eposta && (
+                            <a
+                              className="dashboard-dropdown-item"
+                              href={getMailLink(siparis.Eposta)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Müşteriye e-posta gönder
+                            </a>
+                          )}
                         </div>
                       )}
                     </div>
                   </td>
                 </tr>
-                {/* Sipariş detayları açılır satır */}
                 {acikSiparis === globalIndex && (
                   <tr className="dashboard-siparis-detay-row">
                     <td colSpan={7}>
                       <div className="dashboard-siparis-detay">
-                        <div><b>Adres:</b> {siparis.adres}</div>
-                        <div><b>Telefon:</b> {siparis.telefon}</div>
-                        <div><b>E-posta:</b> {siparis.email}</div>
-                        <div><b>Müşteri Notu:</b> {siparis.musteriNotu}</div>
+                        <div><b>Adres:</b> {siparis.AdresID || '-'}</div>
+                        <div><b>Telefon:</b> {siparis.Telefon || '-'}</div>
+                        <div><b>E-posta:</b> {siparis.Eposta || '-'}</div>
+                        <div><b>Müşteri Notu:</b> {siparis.CustomerNote || '-'}</div>
                         <div>
-                          <Link to={`/dashboard/siparisler/${siparis.no}`} style={{ color: "#0074d9" }}>
+                          <Link to={`/dashboard/siparisler/${siparis.OrderID}`} style={{ color: "#0074d9" }}>
                             <span role="img" aria-label="info">📁</span> Tüm sipariş bilgilerini göster
                           </Link>
+                        </div>
+                        <div style={{marginTop: '12px'}}>
+                          <b>Ürünler:</b>
+                          <ul style={{margin:0, paddingLeft:20}}>
+                            {siparis.items && siparis.items.map((item) => (
+                              <li key={item.OrderItemID}>
+                                {item.ProductName} x{item.Quantity} - {Number(item.UnitPrice).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}
+                                {item.ImageURL && (
+                                  <img src={item.ImageURL} alt={item.ProductName} style={{width:32, height:32, objectFit:'cover', borderRadius:4, marginLeft:8}} />
+                                )}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       </div>
                     </td>
@@ -355,17 +328,11 @@ const Siparisler = () => {
                 <label>İl *
                   <select name="il" value={adresModal.adres.il} onChange={handleIlChange} required>
                     <option value="">İl Seçiniz</option>
-                    {iller.map((il) => (
-                      <option key={il} value={il}>{il}</option>
-                    ))}
                   </select>
                 </label>
                 <label>İlçe *
                   <select name="ilce" value={adresModal.adres.ilce} onChange={handleAdresInput} required disabled={!adresModal.adres.il}>
                     <option value="">İlçe Seçiniz</option>
-                    {adresModal.adres.il && ilceler[adresModal.adres.il]?.map((ilce) => (
-                      <option key={ilce} value={ilce}>{ilce}</option>
-                    ))}
                   </select>
                 </label>
               </div>
