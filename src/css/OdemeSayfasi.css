@@ -1,0 +1,207 @@
+.odeme-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    padding: 24px 0 16px 0;
+    margin-bottom: 32px;
+}
+.button.button.close-btn {
+    background: #209632;
+    color: #000000;
+}
+.odeme-logo {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    margin-right: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.odeme-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: #222;
+    letter-spacing: 1px;
+}
+.odeme-sayfasi-container {
+    min-height: 100vh;
+    background: #f7f7f7;
+}
+.odeme-form-wrapper {
+    max-width: 480px;
+    min-width: 340px;
+    width: 100%;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    padding: 40px 36px 32px 36px;
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+.odeme-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.odeme-form input {
+    padding: 16px;
+    border: 1.5px solid #ddd;
+    border-radius: 7px;
+    font-size: 1.08rem;
+    outline: none;
+    transition: border 0.2s;
+}
+.odeme-form input:focus {
+    border: 2px solid #888;
+}
+.odeme-form button {
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 15px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+.odeme-form button:hover {
+    background: #209632;
+    color: #000000;
+}
+.odeme-error {
+    color: #d00;
+    background: #ffeaea;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 12px;
+    font-size: 1rem;
+    text-align: center;
+}
+.odeme-success {
+    color: #0a7d2c;
+    background: #eaffea;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 12px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* Sayfa içeriği iki yana bölünmüş esnek yapı */
+.odeme-content-flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Sağdaki sipariş özeti kutusu */
+.odeme-ozet-wrapper {
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    border-radius: 12px;
+    padding: 24px 16px 16px 16px;
+    min-width: 240px;
+    max-width: 320px;
+    width: 100%;
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.odeme-ozet-wrapper h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #222;
+}
+.odeme-urun-listesi {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+.odeme-urun-ozet {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(245,245,245,0.7);
+    border-radius: 8px;
+    padding: 8px 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.odeme-urun-ozet img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #fff;
+}
+.odeme-siparis-toplam {
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.odeme-ara-toplam, .odeme-kargo, .odeme-genel-toplam {
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.odeme-genel-toplam {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0a7d2c;
+    margin-top: 4px;
+}
+.odeme-bos {
+    color: #888;
+    text-align: center;
+    padding: 16px 0;
+}
+
+/* Responsive düzen */
+@media (max-width: 900px) {
+    .odeme-content-flex {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    .odeme-ozet-wrapper, .odeme-form-wrapper {
+        max-width: 100%;
+        min-width: 0;
+        margin-top: 18px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .odeme-form-wrapper {
+        padding: 28px 10px 20px 10px;
+    }
+}
+
+@media (max-width: 600px) {
+    .odeme-form-wrapper, .odeme-ozet-wrapper {
+        padding: 12px 4vw 12px 4vw;
+        border-radius: 8px;
+    }
+    .odeme-form input {
+        padding: 12px;
+        font-size: 1rem;
+    }
+    .odeme-form button {
+        padding: 12px;
+        font-size: 1rem;
+    }
+} 

@@ -29,7 +29,15 @@ const emptyAddress = {
 const Account = () => {
   const { user, updateUserInfo } = useUser();
   const navigate = useNavigate();
-  const [selectedMenu, setSelectedMenu] = useState("kisisel");
+  // İlk açılışta localStorage'dan accountMenu anahtarını kontrol et
+  const [selectedMenu, setSelectedMenu] = useState(() => {
+    const menu = localStorage.getItem('accountMenu');
+    if (menu) {
+      localStorage.removeItem('accountMenu'); // Bir kere kullanıp temizle
+      return menu;
+    }
+    return "kisisel";
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',

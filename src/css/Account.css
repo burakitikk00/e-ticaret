@@ -615,4 +615,88 @@
   cursor: not-allowed;
   opacity: 0.8;
   border: 1px solid #ddd;
+}
+
+/* RESPONSIVE TASARIMLAR */
+@media (max-width: 900px) {
+  .account-container {
+    flex-direction: column;
+    max-width: 100%;
+    padding: 8px;
+  }
+  .account-menu {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    padding: 16px 8px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    background: #fafafa;
+  }
+  .account-menu h3 {
+    padding-top: 8px;   /* Üstten boşluk */
+    padding-bottom: 12px; /* Alttan boşluk */
+    padding-left: 8px;
+  }
+  .account-menu ul {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 12px;   /* Üstten boşluk */
+    padding-bottom: 12px; /* Alttan boşluk */
+  }
+  .account-menu li {
+    margin: 0 8px;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .account-content {
+    padding: 18px 4px;
+  }
+}
+
+@media (max-width: 600px) {
+  .account-container {
+    padding: 2px;
+    min-height: unset;
+  }
+  .account-menu {
+    padding: 8px 2px;
+    font-size: 14px;
+  }
+  .account-content {
+    padding: 8px 2px;
+  }
+  .siparis-card {
+    padding: 10px 4px;
+    margin: 12px 0;
+  }
+  .siparis-info {
+    font-size: 13px;
+  }
+  .progress-step, .progress-label {
+    width: 60px;
+    font-size: 10px;
+  }
+  .progress-step {
+    height: 7px;
+  }
+}
+
+@media (max-width: 400px) {
+  .account-menu li {
+    font-size: 12px;
+    margin: 0 4px;
+  }
+  .progress-step, .progress-label {
+    width: 40px;
+    font-size: 8px;
+  }
+  .progress-step {
+    height: 5px;
+  }
 } 

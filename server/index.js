@@ -12,6 +12,7 @@ const productCategoryRoutes = require('./routes/productCategoryRoutes');
 const productVariationCombinationRoutes = require('./routes/productVariationCombinationRoutes');
 const authRoutes = require('./routes/authRoutes');
 const urunVaryasyonBilgiRoutes = require('./routes/urunVaryasyonBilgiRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/product-categories', productCategoryRoutes);
 app.use('/api/variation-combinations', productVariationCombinationRoutes);
 app.use('/api', urunVaryasyonBilgiRoutes);
+app.use('/api/orders', authMiddleware, orderRoutes);
 
 // Kullanıcı bilgilerini güncelleme endpoint'i
 app.put('/api/users/update', authMiddleware, updateUserInfo);

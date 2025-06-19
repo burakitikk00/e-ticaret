@@ -19,6 +19,7 @@ import Login from './pages/Login'
 import ProtectedRoute from './component/ProtectedRoute'
 import { UserProvider } from './context/UserContext'
 import { CartProvider } from './context/CartContext'
+import OdemeSayfasi from './pages/OdemeSayfasi'
 
 // SiteLayout: Header ve Footer'ı saran layout
 const SiteLayout = ({ children }) => (
@@ -98,6 +99,7 @@ function App() {
             path="/HesapOzeti"
             element={<HesapOzeti />}
           />
+          <Route path="/odeme" element={<OdemeSayfasi />} />
         </Routes>
       </UserProvider>
     </CartProvider>

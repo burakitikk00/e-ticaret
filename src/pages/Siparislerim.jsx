@@ -1,5 +1,6 @@
 // Siparişlerim sayfası: Siparişlerin listesi ve durum çubuğu
 import React from "react";
+import axiosInstance from '../utils/axiosConfig'; // API istekleri için axiosInstance'ı ekle
 
 // Sipariş durumu aşamaları
 const STATUS_STEPS = [
@@ -90,7 +91,16 @@ const orders = [
 ];
 
 // Siparişin hangi aşamada olduğunu bulmak için yardımcı fonksiyon
-const getStatusIndex = (status) => STATUS_STEPS.indexOf(status);
+const getStatusIndex = (status) => {
+  // Eğer durum STATUS_STEPS içinde yoksa (örn: Hazırlanıyor), 0 döndür (ilk adım)
+  const idx = STATUS_STEPS.indexOf(status);
+  if (idx === -1) {
+    // Özel durumlar için burada eşleştirme yapabilirsin
+    if (status === "Hazırlanıyor") return 0; // Sadece ilk adım yeşil
+    return -1;
+  }
+  return idx;
+};
 
 const Siparislerim = () => {
   // Ekran genişliğini takip etmek için state
@@ -98,6 +108,30 @@ const Siparislerim = () => {
   // Modal için state'ler
   const [selectedOrder, setSelectedOrder] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  // Siparişler için state
+  const [orders, setOrders] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  // Siparişleri backend'den çek
+  React.useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await axiosInstance.get('/api/orders/my');
+        if (res.data.success) {
+          setOrders(res.data.orders);
+        } else {
+          setError('Siparişler alınamadı.');
+        }
+      } catch (err) {
+        setError('Siparişler alınırken hata oluştu.');
+      }
+      setLoading(false);
+    };
+    fetchOrders();
+  }, []);
 
   // Ekran boyutu değiştiğinde windowWidth'i güncelle
   React.useEffect(() => {
@@ -124,8 +158,11 @@ const Siparislerim = () => {
   return (
     <div className="siparislerim-container">
       <h2>SİPARİŞLERİM</h2>
+      {/* Yükleniyor veya hata mesajı */}
+      {loading && <div>Yükleniyor...</div>}
+      {error && <div style={{color:'red'}}>{error}</div>}
       {orders.map((order) => (
-        <div key={order.id} className="siparis-card" onClick={() => openModal(order)} style={{cursor: 'pointer'}}>
+        <div key={order.OrderID} className="siparis-card" onClick={() => openModal(order)} style={{cursor: 'pointer'}}>
           <div style={{
             display: 'flex', 
             gap: '24px',
@@ -134,9 +171,9 @@ const Siparislerim = () => {
             {/* Sol taraf - Sipariş bilgileri ve ilerleme çubuğu */}
             <div style={{flex: 1}}>
               <div className="siparis-info">
-                <strong>Sipariş ID:</strong> {order.id} <br />
-                <strong>Sipariş Tarihi:</strong> {order.date} <br />
-                <strong>Durum:</strong> {order.status}
+                <strong>Sipariş ID:</strong> {order.OrderID} <br />
+                <strong>Sipariş Tarihi:</strong> {new Date(order.OrderDate).toLocaleDateString('tr-TR')} <br />
+                <strong>Durum:</strong> {order.OrderStatus}
               </div>
               
               {/* İlerleme çubuğu - sadece geniş ekranlarda göster */}
@@ -144,15 +181,27 @@ const Siparislerim = () => {
                 <div className="progress-bar-wrapper">
                   <div className="progress-bar">
                     {STATUS_STEPS.map((step, idx) => {
-                      const isActive = idx <= getStatusIndex(order.status);
+                      // Siparişin mevcut aşamasına kadar olan adımlar yeşil olacak
+                      const isActive = idx <= getStatusIndex(order.OrderStatus);
                       return (
                         <React.Fragment key={step}>
                           <div className="progress-step-container">
-                            <div className={`progress-step ${isActive ? "active" : ""}`} />
-                            <span className="progress-label">{step}</span>
+                            <div 
+                              className={`progress-step ${isActive ? "active" : ""}`}
+                              style={{
+                                background: isActive ? '#4caf50' : '#ccc', // Aktifse yeşil, değilse gri
+                                transition: 'background 0.3s'
+                              }}
+                            />
+                            <span className="progress-label" style={{color: isActive ? '#388e3c' : '#888'}}>{step}</span>
                           </div>
                           {idx < STATUS_STEPS.length - 1 && (
-                            <span className="progress-arrow">→</span>
+                            <span 
+                              className="progress-arrow"
+                              style={{color: isActive ? '#4caf50' : '#ccc', fontWeight: 'bold', fontSize: 18}}
+                            >
+                              →
+                            </span>
                           )}
                         </React.Fragment>
                       );
@@ -181,9 +230,9 @@ const Siparislerim = () => {
                 {/* Sadece ilk 3 ürünü göster */}
                 {order.items.slice(0, 3).map((item, index) => (
                   <img 
-                    key={item.id}
-                    src={item.image} 
-                    alt={item.name}
+                    key={item.OrderItemID}
+                    src={item.ImageURL}
+                    alt={item.ProductName}
                     style={{
                       width: windowWidth <= 480 ? '40px' : '50px',
                       height: windowWidth <= 480 ? '40px' : '50px',
@@ -221,7 +270,7 @@ const Siparislerim = () => {
                 color: '#222',
                 width: '100%'
               }}>
-                {order.total.toLocaleString('tr-TR', {
+                {order.TotalAmount.toLocaleString('tr-TR', {
                   style: 'currency',
                   currency: 'TRY'
                 })}
@@ -270,13 +319,13 @@ const Siparislerim = () => {
             </button>
             <h2 style={{textAlign: 'center', marginBottom: 24}}>Sipariş Detayı</h2>
             <div style={{marginBottom: 20}}>
-              <p><strong>Sipariş No:</strong> {selectedOrder.id}</p>
-              <p><strong>Sipariş Tarihi:</strong> {selectedOrder.date}</p>
-              <p><strong>Durum:</strong> {selectedOrder.status}</p>
+              <p><strong>Sipariş No:</strong> {selectedOrder.OrderID}</p>
+              <p><strong>Sipariş Tarihi:</strong> {new Date(selectedOrder.OrderDate).toLocaleDateString('tr-TR')}</p>
+              <p><strong>Durum:</strong> {selectedOrder.OrderStatus}</p>
             </div>
             <div style={{display: 'flex', flexDirection: 'column', gap: 15, marginBottom: 20}}>
               {selectedOrder.items.map((item) => (
-                <div key={item.id} style={{
+                <div key={item.OrderItemID} style={{
                   display: 'flex',
                   gap: 15,
                   padding: 15,
@@ -284,8 +333,8 @@ const Siparislerim = () => {
                   borderRadius: 8
                 }}>
                   <img 
-                    src={item.image} 
-                    alt={item.name} 
+                    src={item.ImageURL} 
+                    alt={item.ProductName} 
                     style={{
                       width: 80,
                       height: 80,
@@ -294,10 +343,10 @@ const Siparislerim = () => {
                     }}
                   />
                   <div style={{flex: 1}}>
-                    <h4 style={{margin: '0 0 8px 0', fontSize: 16, color: '#333'}}>{item.name}</h4>
-                    <p style={{margin: '4px 0', fontSize: 14, color: '#666'}}>Adet: 1</p>
+                    <h4 style={{margin: '0 0 8px 0', fontSize: 16, color: '#333'}}>{item.ProductName}</h4>
+                    <p style={{margin: '4px 0', fontSize: 14, color: '#666'}}>Adet: {item.Quantity}</p>
                     <p style={{margin: '4px 0', fontSize: 14, color: '#666'}}>
-                      Fiyat: {item.price.toLocaleString('tr-TR', {
+                      Fiyat: {item.UnitPrice.toLocaleString('tr-TR', {
                         style: 'currency',
                         currency: 'TRY'
                       })}
@@ -315,7 +364,7 @@ const Siparislerim = () => {
               color: '#333',
               fontWeight: 'bold'
             }}>
-              <strong>Toplam Tutar:</strong> {selectedOrder.total.toLocaleString('tr-TR', {
+              <strong>Toplam Tutar:</strong> {selectedOrder.TotalAmount.toLocaleString('tr-TR', {
                 style: 'currency',
                 currency: 'TRY'
               })}

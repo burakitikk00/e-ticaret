@@ -9,6 +9,8 @@ import UserMenu from './UserMenu';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import CheckoutModal from './CheckoutModal';
+import GuestOrLoginModal from './GuestOrLoginModal';
 
 function Header() {
     const navigate = useNavigate();
@@ -41,6 +43,8 @@ function Header() {
     const [searchResults, setSearchResults] = useState([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+    const [isGuestOrLoginOpen, setIsGuestOrLoginOpen] = useState(false);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -490,7 +494,15 @@ function Header() {
                                 borderRadius: '4px',
                                 cursor: 'pointer',
                                 fontSize: '14px'
-                            }}>
+                            }}
+                            onClick={() => {
+                                if(user) {
+                                    setIsCheckoutOpen(true);
+                                } else {
+                                    setIsGuestOrLoginOpen(true);
+                                }
+                            }}
+                            >
                                 Alışverişi Tamamla
                             </button>
                         </div>
@@ -675,6 +687,19 @@ function Header() {
                     </div>
                 </div>
             </div>
+            {/* Üye olmadan/giriş yap modalı */}
+            <GuestOrLoginModal 
+                isOpen={isGuestOrLoginOpen} 
+                onClose={() => setIsGuestOrLoginOpen(false)}
+                onSelect={(type) => {
+                    setIsGuestOrLoginOpen(false);
+                    setIsCartOpen(false);
+                    if(type === 'guest') setIsCheckoutOpen(true);
+                    if(type === 'login') setShowLoginModal(true);
+                }}
+            />
+            {/* Sipariş tamamlama modalı */}
+            <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} onOrderComplete={() => setIsCartOpen(false)} />
         </div>
     )
 }
