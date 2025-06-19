@@ -152,8 +152,8 @@ function Header() {
         });
 
         // Kullanıcı adı kontrolü
-        if (!registerUsername || registerUsername.length < 3) {
-            setRegisterError('Kullanıcı adı en az 3 karakter olmalıdır.');
+        if (!registerUsername || registerUsername.length < 5) {
+            setRegisterError('Kullanıcı adı en az 5 karakter olmalıdır.');
             return;
         }
 
@@ -661,6 +661,8 @@ function Header() {
                         setLoginType={setLoginType}
                         loginUsername={loginUsername}
                         setLoginUsername={setLoginUsername}
+                        registerUsername={registerUsername}
+                        setRegisterUsername={setRegisterUsername}
                     />
 
                     <div style={{ position: 'relative', marginLeft: '5px' }}>

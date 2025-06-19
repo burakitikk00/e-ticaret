@@ -161,6 +161,11 @@ const Siparislerim = () => {
       {/* Yükleniyor veya hata mesajı */}
       {loading && <div>Yükleniyor...</div>}
       {error && <div style={{color:'red'}}>{error}</div>}
+      {orders.length === 0 && !loading && !error && (
+        <div style={{color:'#888', marginTop:'32px', fontSize:'18px'}}>
+          Henüz sipariş vermediniz.
+        </div>
+      )}
       {orders.map((order) => (
         <div key={order.OrderID} className="siparis-card" onClick={() => openModal(order)} style={{cursor: 'pointer'}}>
           <div style={{

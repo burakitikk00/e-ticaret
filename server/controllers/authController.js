@@ -221,6 +221,14 @@ const register = async (req, res) => {
             });
         }
 
+        // Kullanıcı adı validasyonu (5-20 karakter ve sadece harf, rakam, alt çizgi)
+        if (!username || username.length < 5 || username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Kullanıcı adı 5-20 karakter olmalı ve sadece harf, rakam veya alt çizgi (_) içerebilir.'
+            });
+        }
+
         // Şifreyi hashle
         const hashedPassword = await bcrypt.hash(password, 10);
         console.log('Şifre hash\'lendi');

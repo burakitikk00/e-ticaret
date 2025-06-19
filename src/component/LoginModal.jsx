@@ -26,10 +26,10 @@ function LoginModal({
     loginType,
     setLoginType,
     loginUsername,
-    setLoginUsername
+    setLoginUsername,
+    registerUsername,
+    setRegisterUsername
 }) {
-    const [registerUsername, setRegisterUsername] = useState('');
-
     return (
         showLoginModal && (
             <div id="login-modal-overlay" onClick={() => {
@@ -140,11 +140,14 @@ function LoginModal({
                                 onChange={e => setRegisterUsername(e.target.value)} 
                                 className="login-input"
                                 required
-                                minLength={3}
+                                minLength={5}
                                 maxLength={20}
                                 pattern="[a-zA-Z0-9_]+"
                                 title="Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir"
                             />
+                            <div style={{ fontSize: '12px', color: '#888', marginBottom: '5px' }}>
+                                Kullanıcı adı 5-20 karakter olmalı ve sadece harf, rakam veya alt çizgi (_) içerebilir.
+                            </div>
                             <input 
                                 type="text" 
                                 placeholder="E-posta" 
@@ -170,7 +173,7 @@ function LoginModal({
                                 className="login-input"
                                 required
                             />
-                            {registerError && <div className="login-error">{registerError}</div>}
+                            {registerError && <div className="login-error">{registerError.includes('5-20 karakter') ? registerError : registerError}</div>}
                             {registerSuccess && <div className="login-success">{registerSuccess}</div>}
                             <button type="submit" className="login-submit-button">
                                 Kayıt Ol
