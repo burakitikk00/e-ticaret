@@ -120,8 +120,10 @@ function Header() {
                 setLoginEmail('');
                 setLoginUsername('');
                 setLoginPassword('');
-                // Account sayfasına yönlendir
-                navigate('/account');
+                // Kullanıcı giriş yaptıktan sonra sayfayı bir kez yenile (kişisel bilgiler güncel gelsin)
+                window.location.reload(); // Giriş sonrası sayfa yenilenir, context güncellenir
+                // Account sayfasına yönlendir (sayfa yenilendiği için bu satır çalışmaz, ama SPA'da reload istemezsen burayı kullanabilirsin)
+                // navigate('/account');
             } else {
                 console.error('❌ Giriş başarısız:', {
                     error: result.error,

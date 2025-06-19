@@ -64,7 +64,7 @@
   }
   
   .dashboard-dropdown-item:hover {
-    background: #48494a;
+    background: rgba(124, 123, 123, 0.051);
   }
   
   .dashboard-siparis-detay-row td {

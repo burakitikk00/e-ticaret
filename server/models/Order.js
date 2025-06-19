@@ -76,4 +76,18 @@ async function updateOrderStatus(orderId, status) {
     }
 }
 
-module.exports = { createOrder, getOrderById, getOrdersByUserId, getAllOrders, updateOrderStatus }; 
+// Belirli bir tarih aralığındaki siparişleri getirir
+async function getOrdersByDateRange(startDate, endDate) {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request()
+            .input('StartDate', sql.DateTime, startDate)
+            .input('EndDate', sql.DateTime, endDate)
+            .query('SELECT * FROM Orders WHERE OrderDate >= @StartDate AND OrderDate <= @EndDate ORDER BY OrderDate DESC');
+        return result.recordset;
+    } catch (err) {
+        throw err;
+    }
+}
+
+module.exports = { createOrder, getOrderById, getOrdersByUserId, getAllOrders, updateOrderStatus, getOrdersByDateRange }; 

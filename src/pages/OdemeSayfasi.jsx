@@ -21,13 +21,12 @@ function OdemeSayfasi() {
     const { cartItems, getTotalPrice, clearCart } = useCart();
     const { user } = useUser();
     const navigate = useNavigate(); // Yönlendirme hook'u
-    const kargoFiyati = teslimat.KargoBedeli || 0; // Kargo bedelini localStorage'dan veya sabit olarak al
-    // Teslimat bilgisi CheckoutModal'dan props ile alınabilir veya context ile alınabilir. Burada örnek için localStorage üzerinden alınacak.
     const [teslimat, setTeslimat] = useState(() => {
         // CheckoutModal'da siparişi tamamla aşamasında localStorage'a kaydedilmiş olabilir
         const data = localStorage.getItem('teslimatBilgisi');
         return data ? JSON.parse(data) : {};
     });
+    const kargoFiyati = teslimat.KargoBedeli || 0; // Kargo bedelini localStorage'dan veya sabit olarak al
 
     // Form state'leri
     const [form, setForm] = useState({

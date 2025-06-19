@@ -43,6 +43,9 @@ function Tumurunler() {
     const [selectedVariations, setSelectedVariations] = useState({}); // { variationId: selectedOption }
     const [variationMenusOpen, setVariationMenusOpen] = useState({}); // { variationId: boolean }
 
+    // Her ürünün varyasyon kombinasyonlarını tutacak state
+    const [productVariations, setProductVariations] = useState({}); // { [productId]: [ { Varyasyon1, Options1, varyasyon2, Options2 } ] }
+
     // Ürünleri API'den çek
     useEffect(() => {
         const fetchProducts = async () => {
@@ -60,32 +63,48 @@ function Tumurunler() {
                 
                 if (response.data.success) {
                     // API'den gelen ürünleri dönüştür
-                    const formattedProducts = response.data.products.map(product => {
-                        console.log('İşlenen ürün:', product);
-                        
-                        // Opsiyonları parse et
-                        const opsiyonlar = product.Opsiyonlar ? product.Opsiyonlar.split(', ') : [];
-                        const opsiyonFiyatlari = product.OpsiyonFiyatlari ? product.OpsiyonFiyatlari.split(', ').map(Number) : [];
-                        
-                        return {
-                            id: product.ProductID,
-                            resim: product.ImageURL ? product.ImageURL : "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
-                            baslik: product.ProductName,
-                            fiyat: `${product.BasePrice} ${product.Currency}`,
-                            aciklama: product.Description,
-                            stok: product.Stock,
-                            kargoTipi: product.ShippingType,
-                            kargoUcreti: product.ShippingCost,
-                            urunTipi: product.ProductType,
-                            dil: product.Language,
-                            indirimli: product.IsDiscounted,
-                            opsiyonlar: opsiyonlar,
-                            opsiyonFiyatlari: opsiyonFiyatlari,
-                            CategoriesName: product.CategoriesName
-                        };
-                    });
+                    // Sadece aktif ürünleri göster (Status true/1 olanlar)
+                    const formattedProducts = response.data.products
+                        .filter(product => product.Status === true || product.Status === 1) // Pasif ürünleri gizle
+                        .map(product => {
+                            console.log('İşlenen ürün:', product);
+                            
+                            // Opsiyonları parse et
+                            const opsiyonlar = product.Opsiyonlar ? product.Opsiyonlar.split(', ') : [];
+                            const opsiyonFiyatlari = product.OpsiyonFiyatlari ? product.OpsiyonFiyatlari.split(', ').map(Number) : [];
+                            
+                            return {
+                                id: product.ProductID,
+                                resim: product.ImageURL ? product.ImageURL : "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
+                                baslik: product.ProductName,
+                                fiyat: `${product.BasePrice} ${product.Currency}`,
+                                aciklama: product.Description,
+                                stok: product.Stock,
+                                kargoTipi: product.ShippingType,
+                                kargoUcreti: product.ShippingCost,
+                                urunTipi: product.ProductType,
+                                dil: product.Language,
+                                indirimli: product.IsDiscounted,
+                                opsiyonlar: opsiyonlar,
+                                opsiyonFiyatlari: opsiyonFiyatlari,
+                                CategoriesName: product.CategoriesName
+                            };
+                        });
                     console.log('Dönüştürülmüş ürünler:', formattedProducts);
                     setProducts(formattedProducts);
+
+                    // Her ürün için varyasyon kombinasyonlarını çek
+                    formattedProducts.forEach(async (product) => {
+                        try {
+                            const res = await axios.get(`http://localhost:5000/api/urunvaryasyonbilgi/${product.id}`);
+                            setProductVariations(prev => ({
+                                ...prev,
+                                [product.id]: res.data // [{ Varyasyon1, Options1, varyasyon2, Options2 }]
+                            }));
+                        } catch (err) {
+                            setProductVariations(prev => ({ ...prev, [product.id]: [] }));
+                        }
+                    });
                 } else {
                     console.error('API başarısız yanıt:', response.data);
                     setError('Ürünler yüklenirken bir hata oluştu');
@@ -174,17 +193,25 @@ function Tumurunler() {
         const price = parseFloat(product.fiyat.split(' ')[0]);
         const priceMatch = price >= priceRange[0] && price <= priceRange[1];
         
-        // Varyasyon filtreleri
-        const variationMatch = Object.keys(selectedVariations).every(variationId => {
-            const selectedOption = selectedVariations[variationId];
-            if (!selectedOption) return true; // Seçim yoksa filtreleme yapma
-            
-            // Ürünün opsiyonlarında bu varyasyon seçeneği var mı kontrol et
-            return product.opsiyonlar && product.opsiyonlar.includes(selectedOption);
+        // Varyasyon filtreleri (yeni)
+        const kombinasyonlar = productVariations[product.id] || [];
+        // Eğer hiç varyasyon seçilmemişse, ürünü göster
+        if (Object.values(selectedVariations).every(val => !val)) return true;
+        // Seçili varyasyonlara uyan bir kombinasyon var mı?
+        const match = kombinasyonlar.some(komb => {
+            return Object.entries(selectedVariations).every(([variationId, selectedOption]) => {
+                if (!selectedOption) return true;
+                // Varyasyon adını bul
+                const variation = variations.find(v => v.VariationID.toString() === variationId.toString());
+                if (!variation) return true;
+                // Kombinasyonda bu varyasyonun seçeneği var mı?
+                // Varyasyon1 veya varyasyon2'ye bak
+                if (komb.Varyasyon1 === variation.ad && komb.Options1 === selectedOption) return true;
+                if (komb.varyasyon2 === variation.ad && komb.Options2 === selectedOption) return true;
+                return false;
+            });
         });
-
-        // Tüm filtreleri birleştir
-        return urlCategoryMatch && selectedCategoryMatch && priceMatch && variationMatch;
+        return urlCategoryMatch && selectedCategoryMatch && priceMatch && match;
     });
 
     // Sıralama işlemi

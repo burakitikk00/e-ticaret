@@ -24,11 +24,9 @@ function Footer() {
                                 <div className="menu-section">
                                     <p className="section-title">HESABIM</p>
                                     <ul>
-                                        <li><a href="/cart">Sepetim</a></li>
+                                        
                                         <li><a href="/account/orders">Siparişlerim</a></li>
-                                        <li><a href="/pages/order-tracking">Sipariş Takibi</a></li>
                                         <li><a href="/account">Hesabım</a></li>
-                                        <li><a href="/pages/odeme-bildirimi">Ödeme Bildirimi</a></li>
                                         <li><a href="/account/login">Giriş Yap</a></li>
                                         <li><a href="/account/register">Kayıt Ol</a></li>
                                     </ul>

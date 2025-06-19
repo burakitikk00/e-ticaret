@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Statistic, Select, Table } from "antd";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import moment from "moment";
+import axiosInstance from '../../utils/axiosConfig'; // Backend istekleri için axiosInstance ekle
 
 // Tarih filtre seçenekleri
 const dateOptions = [
@@ -11,66 +12,114 @@ const dateOptions = [
   { label: "Geçen Ay", value: "lastmonth" },
 ];
 
-// Örnek satış verileri (grafik için)
-const salesData = {
-  last7days: [
-    { date: "13 May", sales: 3200 },
-    { date: "14 May", sales: 4100 },
-    { date: "15 May", sales: 3800 },
-    { date: "16 May", sales: 2900 },
-    { date: "17 May", sales: 4500 },
-    { date: "18 May", sales: 4700 },
-    { date: "19 May", sales: 3900 },
-  ],
-  lastweek: [
-    { date: "6 May", sales: 2100 },
-    { date: "7 May", sales: 2500 },
-    { date: "8 May", sales: 3000 },
-    { date: "9 May", sales: 3400 },
-    { date: "10 May", sales: 4100 },
-    { date: "11 May", sales: 3700 },
-    { date: "12 May", sales: 3200 },
-  ],
-  last30days: Array.from({ length: 30 }, (_, i) => ({
-    date: moment().subtract(29 - i, 'days').format('DD MMM'),
-    sales: Math.floor(Math.random() * 5000) + 2000,
-  })),
-  lastmonth: Array.from({ length: 30 }, (_, i) => ({
-    date: moment().subtract(29 - i, 'days').format('DD MMM'),
-    sales: Math.floor(Math.random() * 5000) + 2000,
-  })),
-  last12months: Array.from({ length: 12 }, (_, i) => ({
-    date: moment().subtract(11 - i, 'months').format('MMM YYYY'),
-    sales: Math.floor(Math.random() * 100000) + 20000,
-  })),
-};
-
-// En çok satan ürünler (örnek veri)    
-const topProducts = [
-  { name: "Mini vakko", count: 154 },
-  { name: "Speddy...", count: 68 },
-  { name: "Mini vakko", count: 33 },
-  { name: "Speddy...", count: 25 },
-  { name: "Mini vakko", count: 22 },
-];
+// Örnek satış verileri ve örnek en çok satan ürünler kaldırıldı
 
 const HesapOzeti = () => {
   // Seçili tarih filtresi (grafik için)
   const [selectedRange, setSelectedRange] = useState("last7days");
 
-  // Grafik verisini seçili aralığa göre alıyoruz
-  const chartData = salesData[selectedRange];
+  // Dinamik veriler için state'ler
+  const [summary, setSummary] = useState({
+    totalSales: 0,
+    totalOrders: 0,
+    openOrders: 0,
+    last30DaysSales: 0,
+    last30DaysRefunds: 0,
+    chartData: [],
+    topProducts: [],
+  });
+  const [loading, setLoading] = useState(false);
 
-  // Son 30 gün satış ve iade örnek verisi
-  const last30DaysSales = salesData.last30days.reduce((acc, cur) => acc + cur.sales, 0); // Son 30 gün toplam satış
-  const last30DaysRefunds = 7074.94; // Son 30 gün iade tutarı (örnek)
-
-  // Toplam ve açık sipariş örnek verisi
-  const totalOrders = 374;
-  const openOrders = 2;
-
-  // Toplam satış örnek verisi
-  const totalSales = 363731.01; // TL
+  // Tarih aralığına göre backend'den verileri çek
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // 1. Tüm siparişleri çek (istatistikler için)
+        const allOrdersRes = await axiosInstance.get('/api/orders/all');
+        const allOrders = allOrdersRes.data.orders || [];
+        // 2. Son 30 gün siparişlerini çek
+        const endDate = moment().endOf('day').toISOString();
+        const startDate = moment().subtract(29, 'days').startOf('day').toISOString();
+        const last30Res = await axiosInstance.get('/api/orders/by-date', {
+          params: { startDate, endDate }
+        });
+        const last30Orders = last30Res.data.orders || [];
+        // 3. En çok satan ürünleri çek (son 30 gün için)
+        const topProductsRes = await axiosInstance.get('/api/orders/top-products', {
+          params: { startDate, endDate, limit: 5 }
+        });
+        const topProducts = (topProductsRes.data.products || []).map(p => ({ name: p.ProductName, count: p.count }));
+        // 4. Grafik verisi için seçili aralığa göre siparişleri çek
+        let chartStart, chartEnd, chartStep, chartFormat;
+        if (selectedRange === 'last7days' || selectedRange === 'lastweek') {
+          chartStart = moment().subtract(6, 'days').startOf('day');
+          chartEnd = moment().endOf('day');
+          chartStep = 'days';
+          chartFormat = 'DD MMM';
+        } else if (selectedRange === 'last30days' || selectedRange === 'lastmonth') {
+          chartStart = moment().subtract(29, 'days').startOf('day');
+          chartEnd = moment().endOf('day');
+          chartStep = 'days';
+          chartFormat = 'DD MMM';
+        } else {
+          chartStart = moment().subtract(11, 'months').startOf('month');
+          chartEnd = moment().endOf('month');
+          chartStep = 'months';
+          chartFormat = 'MMM YYYY';
+        }
+        const chartRes = await axiosInstance.get('/api/orders/by-date', {
+          params: { startDate: chartStart.toISOString(), endDate: chartEnd.toISOString() }
+        });
+        const chartOrders = chartRes.data.orders || [];
+        // 5. Toplam satış ve sipariş hesapla
+        const totalSales = allOrders.reduce((acc, cur) => acc + Number(cur.TotalAmount || 0), 0);
+        const totalOrders = allOrders.length;
+        // 6. Açık sipariş sayısı (OrderStatus "Hazırlanıyor", "Kargoda", "Onaylandı" gibi olanlar)
+        const openOrders = allOrders.filter(o => ["Hazırlanıyor", "Kargoda", "Onaylandı"].includes(o.OrderStatus)).length;
+        // 7. Son 30 gün satış ve iade tutarı
+        const last30DaysSales = last30Orders.filter(o => o.OrderStatus !== "İade Edildi").reduce((acc, cur) => acc + Number(cur.TotalAmount || 0), 0);
+        const last30DaysRefunds = last30Orders.filter(o => o.OrderStatus === "İade Edildi").reduce((acc, cur) => acc + Number(cur.TotalAmount || 0), 0);
+        // 8. Grafik datası oluştur
+        let chartData = [];
+        if (chartStep === 'days') {
+          for (let i = 0; i <= chartEnd.diff(chartStart, 'days'); i++) {
+            const day = moment(chartStart).add(i, 'days');
+            const dayOrders = chartOrders.filter(o => moment(o.OrderDate).isSame(day, 'day'));
+            chartData.push({ date: day.format(chartFormat), sales: dayOrders.reduce((acc, cur) => acc + Number(cur.TotalAmount || 0), 0) });
+          }
+        } else {
+          for (let i = 0; i <= chartEnd.diff(chartStart, 'months'); i++) {
+            const month = moment(chartStart).add(i, 'months');
+            const monthOrders = chartOrders.filter(o => moment(o.OrderDate).isSame(month, 'month'));
+            chartData.push({ date: month.format(chartFormat), sales: monthOrders.reduce((acc, cur) => acc + Number(cur.TotalAmount || 0), 0) });
+          }
+        }
+        setSummary({
+          totalSales,
+          totalOrders,
+          openOrders,
+          last30DaysSales,
+          last30DaysRefunds,
+          chartData,
+          topProducts,
+        });
+      } catch (err) {
+        // Hata olursa sıfırla
+        setSummary({
+          totalSales: 0,
+          totalOrders: 0,
+          openOrders: 0,
+          last30DaysSales: 0,
+          last30DaysRefunds: 0,
+          chartData: [],
+          topProducts: [],
+        });
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, [selectedRange]);
 
   return (
     <div style={{ padding: 24 }}>
@@ -78,26 +127,26 @@ const HesapOzeti = () => {
         {/* Toplam Satış */}
         <Col span={6}>
           <Card>
-            <Statistic title="Bugüne Kadarki Toplam Satış" value={totalSales} suffix="TL" />
+            <Statistic title="Bugüne Kadarki Toplam Satış" value={summary.totalSales} suffix="TL" />
           </Card>
         </Col>
         {/* Toplam Sipariş */}
         <Col span={6}>
           <Card>
-            <Statistic title="Toplam Sipariş" value={totalOrders} />
+            <Statistic title="Toplam Sipariş" value={summary.totalOrders} />
           </Card>
         </Col>
         {/* Açık Sipariş */}
         <Col span={6}>
           <Card>
-            <Statistic title="Açık Sipariş" value={openOrders} />
+            <Statistic title="Açık Sipariş" value={summary.openOrders} />
           </Card>
         </Col>
         {/* Son 30 Gün Satış ve İade */}
         <Col span={6}>
           <Card>
-            <Statistic title="Son 30 Gün Satış" value={last30DaysSales} suffix="TL" />
-            <Statistic title="Son 30 Gün İade" value={last30DaysRefunds} suffix="TL" valueStyle={{ color: "red" }} />
+            <Statistic title="Son 30 Gün Satış" value={summary.last30DaysSales} suffix="TL" />
+            <Statistic title="Son 30 Gün İade" value={summary.last30DaysRefunds} suffix="TL" valueStyle={{ color: "red" }} />
           </Card>
         </Col>
       </Row>
@@ -118,7 +167,7 @@ const HesapOzeti = () => {
           </Col>
         </Row>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
+          <LineChart data={summary.chartData}>
             <XAxis dataKey="date" />
             <YAxis />
             <Tooltip />
@@ -131,13 +180,14 @@ const HesapOzeti = () => {
       <Card style={{ marginTop: 24 }}>
         <h3>En Çok Satan Ürünler</h3>
         <Table
-          dataSource={topProducts}
+          dataSource={summary.topProducts}
           columns={[
             { title: "Ürün Adı", dataIndex: "name", key: "name" },
             { title: "Satış Adedi", dataIndex: "count", key: "count" },
           ]}
           pagination={false}
           rowKey="name"
+          loading={loading}
         />
       </Card>
     </div>

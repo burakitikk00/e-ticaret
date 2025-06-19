@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import '../css/ProductDetail.css';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -129,7 +126,7 @@ function ProductDetail() {
             };
             
             console.log('Ürün Detay: Sepete eklenecek ürün:', itemToAdd);
-            addToCart(itemToAdd);
+            addToCart(itemToAdd, quantity); // quantity bilgisini de gönderiyoruz
             alert('Ürün sepete eklendi!');
         } else {
             console.error('Ürün Detay: Sepete eklenecek ürün bilgisi eksik veya hatalı.');
@@ -223,7 +220,7 @@ function ProductDetail() {
             <div className="product-info">
                 <h1 className="product-title">{product.ProductName || product.baslik}</h1>
                 <p className="product-price">{product.fiyat}</p>
-                <p className="product-guide">Ürün Rehberi</p>
+                
 
                 {/* Varyasyon seçim alanı */}
                 {varyasyonlar.length > 0 && (
@@ -304,7 +301,7 @@ function ProductDetail() {
                             <div className="accordion-content">
                                 <p><strong>Kargo Tipi:</strong> {product.ShippingType || 'Standart Kargo'}</p>
                                 <p><strong>Kargo Ücreti:</strong> {product.ShippingCost ? `${product.ShippingCost} ₺` : 'Ücretsiz Kargo'}</p>
-                                <p><strong>İade Koşulları:</strong> 14 gün içinde ücretsiz iade hakkı</p>
+                                <p><strong>İade Koşulları:</strong> İademiz yoktur.   Whatsapp ile değişim talebi oluşturabilirsiniz.</p>
                             </div>
                         )}
                     </div>

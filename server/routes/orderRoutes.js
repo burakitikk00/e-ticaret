@@ -15,4 +15,10 @@ router.get('/all', getAllOrders);
 // Sipariş durumunu güncelle
 router.patch('/:orderId/status', updateOrderStatus);
 
+// Tarih aralığına göre siparişleri getir
+router.get('/by-date', require('../controllers/orderController').getOrdersByDateRange);
+
+// En çok satan ürünler
+router.get('/top-products', require('../controllers/orderController').getTopProducts);
+
 module.exports = router; 

@@ -34,8 +34,8 @@ async function insertProduct(product) {
 async function getAllProducts() {
     try {
         const pool = await sql.connect(config);
-        // Sadece aktif ürünler (Status=1) getirilecek
-        const result = await pool.request().query('SELECT * FROM dbo.Products WHERE Status = 1 ');
+        // Tüm ürünler (aktif ve pasif) getirilecek
+        const result = await pool.request().query('SELECT * FROM dbo.Products');
         return result.recordset;
     } catch (err) {
         throw err;
@@ -46,7 +46,7 @@ async function getAllProducts() {
 async function getAllProductsWithCategory() {
     try {
         const pool = await sql.connect(config);
-        // Sadece aktif ürünler (Status=1) getirilecek
+        // Tüm ürünler (aktif ve pasif) getirilecek
         const result = await pool.request().query(`
             SELECT 
                 p.*,
@@ -57,7 +57,6 @@ async function getAllProductsWithCategory() {
             LEFT JOIN dbo.ProductCategories pc ON p.ProductID = pc.ProductID
             LEFT JOIN dbo.Categories c ON pc.CategoriesID = c.CategoriesID
             LEFT JOIN dbo.ProductOpsiyon po ON p.ProductID = po.ProductID
-            WHERE p.Status = 1
             GROUP BY 
                 p.ProductID, p.ProductName, p.Description, p.BasePrice, 
                 p.Currency, p.Stock, p.ShippingType, p.ShippingCost, 
