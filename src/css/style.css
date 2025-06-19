@@ -9,7 +9,8 @@
     text-align: center;
     font-size: clamp(24px, 3vw, 48px);
     font-weight: bold;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    margin-top: 6rem;
     padding: 0 1rem;
 }
 
@@ -268,7 +269,6 @@
     display: grid; /* Grid görünümü için */
     grid-template-columns: repeat(4, 1fr); /* 4 sütunlu grid yapısı */
     gap: 20px; /* Grid öğeleri arası boşluk */
-    width: 100%; /* Tam genişlik */
     margin: 0 auto; /* Ortalama */
     padding: 1rem; /* İç boşluk */
 }

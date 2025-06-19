@@ -16,6 +16,7 @@
     width: 100%;
     aspect-ratio: 1;
     margin-bottom: 1rem;
+    margin-top: 2rem;
     overflow: hidden;
     cursor: zoom-in;
 }

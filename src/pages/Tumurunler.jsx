@@ -23,16 +23,12 @@ function Tumurunler() {
     // State'ler
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('');
-    const [selectedColor, setSelectedColor] = useState('');
-    const [selectedMaterial, setSelectedMaterial] = useState('');
     const [priceRange, setPriceRange] = useState([0, 2000]);
     const [sortOption, setSortOption] = useState('featured');
     const [sortMenuOpen, setSortMenuOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     // Açılır menü state'leri
     const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
-    const [colorMenuOpen, setColorMenuOpen] = useState(false);
-    const [materialMenuOpen, setMaterialMenuOpen] = useState(false);
     const [priceMenuOpen, setPriceMenuOpen] = useState(false);
 
     // Modal için state'ler
@@ -41,6 +37,11 @@ function Tumurunler() {
 
     // Kategori state'i
     const [categories, setCategories] = useState([]);
+
+    // Varyasyonlar için state'ler
+    const [variations, setVariations] = useState([]);
+    const [selectedVariations, setSelectedVariations] = useState({}); // { variationId: selectedOption }
+    const [variationMenusOpen, setVariationMenusOpen] = useState({}); // { variationId: boolean }
 
     // Ürünleri API'den çek
     useEffect(() => {
@@ -66,10 +67,6 @@ function Tumurunler() {
                         const opsiyonlar = product.Opsiyonlar ? product.Opsiyonlar.split(', ') : [];
                         const opsiyonFiyatlari = product.OpsiyonFiyatlari ? product.OpsiyonFiyatlari.split(', ').map(Number) : [];
                         
-                        // Renk ve materyal bilgilerini opsiyonlardan çıkar
-                        const renk = opsiyonlar.find(op => colors.includes(op)) || '';
-                        const materyal = opsiyonlar.find(op => materials.includes(op)) || '';
-                        
                         return {
                             id: product.ProductID,
                             resim: product.ImageURL ? product.ImageURL : "https://cdn.myikas.com/images/50e891e0-a788-4e78-acf2-35fa6377d32b/6c923911-9175-4b63-871a-c8cf0d0b0b20/10/13.webp",
@@ -82,8 +79,6 @@ function Tumurunler() {
                             urunTipi: product.ProductType,
                             dil: product.Language,
                             indirimli: product.IsDiscounted,
-                            renk: renk,
-                            materyal: materyal,
                             opsiyonlar: opsiyonlar,
                             opsiyonFiyatlari: opsiyonFiyatlari,
                             CategoriesName: product.CategoriesName
@@ -127,18 +122,45 @@ function Tumurunler() {
         fetchCategories();
     }, []);
 
-    // Kategori, renk ve materyal örnekleri
-    const colors = ['Siyah', 'Beyaz', 'Kahverengi', 'Mavi', 'Krem'];
-    const materials = ['Deri', 'Suni Deri', 'Pamuk', 'İpek', 'Kanvas', 'Naylon'];
+    // Varyasyonları API'den çekme
+    useEffect(() => {
+        const fetchVariations = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/variations');
+                console.log('Varyasyonlar API yanıtı:', response.data);
+                setVariations(response.data);
+            } catch (error) {
+                console.error('Varyasyonlar yüklenirken hata:', error);
+                setVariations([]);
+            }
+        };
+
+        fetchVariations();
+    }, []);
 
     // Sıralama seçenekleri
     const sortOptions = [
-        { value: 'featured', label: 'Öne çıkan' },
         { value: 'price-asc', label: 'Fiyat artan' },
         { value: 'price-desc', label: 'Fiyat azalan' },
         { value: 'first', label: 'İlk Eklenen' },
         { value: 'last', label: 'Son Eklenen' },
     ];
+
+    // Varyasyon menüsünü aç/kapat
+    const toggleVariationMenu = (variationId) => {
+        setVariationMenusOpen(prev => ({
+            ...prev,
+            [variationId]: !prev[variationId]
+        }));
+    };
+
+    // Varyasyon seçeneği seç
+    const handleVariationSelect = (variationId, option) => {
+        setSelectedVariations(prev => ({
+            ...prev,
+            [variationId]: prev[variationId] === option ? '' : option
+        }));
+    };
 
     // Filtreleme fonksiyonu - tüm filtreleri uygula
     const filteredProducts = products.filter(product => {
@@ -152,14 +174,17 @@ function Tumurunler() {
         const price = parseFloat(product.fiyat.split(' ')[0]);
         const priceMatch = price >= priceRange[0] && price <= priceRange[1];
         
-        // Renk filtresi (ürünün renk bilgisi varsa)
-        const colorMatch = selectedColor ? product.renk === selectedColor : true;
-        
-        // Materyal filtresi (ürünün materyal bilgisi varsa)
-        const materialMatch = selectedMaterial ? product.materyal === selectedMaterial : true;
+        // Varyasyon filtreleri
+        const variationMatch = Object.keys(selectedVariations).every(variationId => {
+            const selectedOption = selectedVariations[variationId];
+            if (!selectedOption) return true; // Seçim yoksa filtreleme yapma
+            
+            // Ürünün opsiyonlarında bu varyasyon seçeneği var mı kontrol et
+            return product.opsiyonlar && product.opsiyonlar.includes(selectedOption);
+        });
 
         // Tüm filtreleri birleştir
-        return urlCategoryMatch && selectedCategoryMatch && priceMatch && colorMatch && materialMatch;
+        return urlCategoryMatch && selectedCategoryMatch && priceMatch && variationMatch;
     });
 
     // Sıralama işlemi
@@ -296,170 +321,123 @@ function Tumurunler() {
                                         type="number" 
                                         value={priceRange[0]} 
                                         onChange={e => setPriceRange([Number(e.target.value), priceRange[1]])}
-                                        style={{width:'100px', padding:'5px'}}/>
+                                        style={{width:'100px', padding:'5px',borderRadius:'15px',textAlign:'center'}}/>
                                     <span>-</span>
                                     <input 
                                         type="number" 
                                         value={priceRange[1]} 
                                         onChange={e => setPriceRange([priceRange[0], Number(e.target.value)])}
-                                        style={{width:'100px', padding:'5px'}}/>
+                                        style={{width:'100px', padding:'5px',borderRadius:'15px',textAlign:'center'}}/>
                                 </div>
                             </div>
                         )}
                     </div>
-                    {/* Kategori Filtresi */}
-                    <div style={{marginBottom:'20px'}}>
-                        <button 
-                            onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
-                            style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '10px',
-                                background: 'none',
-                                border: 'none',
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}
-                        >
-                            Kategori {categoryMenuOpen ? '▲' : '▼'}
-                        </button>
-                        {categoryMenuOpen && (
-                            <div style={{padding: '10px'}}>
-                                {categories.map(category => (
-                                    <div key={category.CategoryID} style={{marginBottom: '8px'}}>
+                    {/* Kategori Filtresi - Sadece tüm ürünler sayfasında göster */}
+                    {!kategoriParam && (
+                        <div style={{marginBottom:'20px'}}>
+                            <button 
+                                onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
+                                style={{
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    padding: '10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                Kategori {categoryMenuOpen ? '▲' : '▼'}
+                            </button>
+                            {categoryMenuOpen && (
+                                <div style={{padding: '10px'}}>
+                                    {categories.map(category => (
+                                        <div key={category.CategoryID} style={{marginBottom: '8px'}}>
+                                            <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                                <input 
+                                                    type="radio" 
+                                                    name="kategori" 
+                                                    value={category.CategoriesName}
+                                                    checked={selectedCategory === category.CategoriesName}
+                                                    onChange={() => setSelectedCategory(category.CategoriesName)}
+                                                />
+                                                {category.CategoriesName}
+                                            </label>
+                                        </div>
+                                    ))}
+                                    <div>
                                         <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                                             <input 
                                                 type="radio" 
                                                 name="kategori" 
-                                                value={category.CategoriesName}
-                                                checked={selectedCategory === category.CategoriesName}
-                                                onChange={() => setSelectedCategory(category.CategoriesName)}
+                                                value=""
+                                                checked={selectedCategory === ''}
+                                                onChange={() => setSelectedCategory('')}
                                             />
-                                            {category.CategoriesName}
+                                            Tümü
                                         </label>
                                     </div>
-                                ))}
-                                <div>
-                                    <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                        <input 
-                                            type="radio" 
-                                            name="kategori" 
-                                            value=""
-                                            checked={selectedCategory === ''}
-                                            onChange={() => setSelectedCategory('')}
-                                        />
-                                        Tümü
-                                    </label>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                    {/* Renk Filtresi */}
-                    <div style={{marginBottom:'20px'}}>
-                        <button 
-                            onClick={() => setColorMenuOpen(!colorMenuOpen)}
-                            style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '10px',
-                                background: 'none',
-                                border: 'none',
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}
-                        >
-                            Renk {colorMenuOpen ? '▲' : '▼'}
-                        </button>
-                        {colorMenuOpen && (
-                            <div style={{padding: '10px'}}>
-                                {colors.map(color => (
-                                    <div key={color} style={{marginBottom: '8px'}}>
+                            )}
+                        </div>
+                    )}
+                    {/* Dinamik Varyasyon Filtreleri */}
+                    {variations.map(variation => (
+                        <div key={variation.VariationID} style={{marginBottom:'20px'}}>
+                            <button 
+                                onClick={() => toggleVariationMenu(variation.VariationID)}
+                                style={{
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    padding: '10px',
+                                    background: 'none',
+                                    border: 'none',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                {variation.ad} {variationMenusOpen[variation.VariationID] ? '▲' : '▼'}
+                            </button>
+                            {variationMenusOpen[variation.VariationID] && (
+                                <div style={{padding: '10px'}}>
+                                    {variation.secenekler.map(option => (
+                                        <div key={option} style={{marginBottom: '8px'}}>
+                                            <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                                <input 
+                                                    type="radio" 
+                                                    name={`variation-${variation.VariationID}`} 
+                                                    value={option}
+                                                    checked={selectedVariations[variation.VariationID] === option}
+                                                    onChange={() => handleVariationSelect(variation.VariationID, option)}
+                                                />
+                                                {option}
+                                            </label>
+                                        </div>
+                                    ))}
+                                    <div>
                                         <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                                             <input 
                                                 type="radio" 
-                                                name="renk" 
-                                                value={color}
-                                                checked={selectedColor === color}
-                                                onChange={() => setSelectedColor(color)}
+                                                name={`variation-${variation.VariationID}`} 
+                                                value=""
+                                                checked={selectedVariations[variation.VariationID] === ''}
+                                                onChange={() => handleVariationSelect(variation.VariationID, '')}
                                             />
-                                            {color}
+                                            Tümü
                                         </label>
                                     </div>
-                                ))}
-                                <div>
-                                    <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                        <input 
-                                            type="radio" 
-                                            name="renk" 
-                                            value=""
-                                            checked={selectedColor === ''}
-                                            onChange={() => setSelectedColor('')}
-                                        />
-                                        Tümü
-                                    </label>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                    {/* Materyal Filtresi */}
-                    <div style={{marginBottom:'20px'}}>
-                        <button 
-                            onClick={() => setMaterialMenuOpen(!materialMenuOpen)}
-                            style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '10px',
-                                background: 'none',
-                                border: 'none',
-                                fontSize: '16px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}
-                        >
-                            Materyal {materialMenuOpen ? '▲' : '▼'}
-                        </button>
-                        {materialMenuOpen && (
-                            <div style={{padding: '10px'}}>
-                                {materials.map(mat => (
-                                    <div key={mat} style={{marginBottom: '8px'}}>
-                                        <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                            <input 
-                                                type="radio" 
-                                                name="materyal" 
-                                                value={mat}
-                                                checked={selectedMaterial === mat}
-                                                onChange={() => setSelectedMaterial(mat)}
-                                            />
-                                            {mat}
-                                        </label>
-                                    </div>
-                                ))}
-                                <div>
-                                    <label style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                        <input 
-                                            type="radio" 
-                                            name="materyal" 
-                                            value=""
-                                            checked={selectedMaterial === ''}
-                                            onChange={() => setSelectedMaterial('')}
-                                        />
-                                        Tümü
-                                    </label>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             )}
             {/* Ürün grid'i */}

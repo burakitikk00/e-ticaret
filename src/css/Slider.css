@@ -7,6 +7,7 @@
 .slider.multiple {
     width: 100%;
     position: relative;
+    margin-top: 5rem;
 }
 
 .slider.multiple .slick-slider.slick-initialized {
@@ -72,7 +73,7 @@
     .slider.multiple .slick-slider.slick-initialized .slick-arrow {
         width: 2.5rem; /* Mobilde daha küçük oklar */
         height: 2.5rem;
-        transform: translateY(-150%); /* Mobilde daha az yukarı */
+        
     }
 
     .slider.multiple .slick-slider.slick-initialized .slick-prev {
@@ -128,12 +129,12 @@
     /* Resmin altındaki boşluğu kaldırmak için */
 }
 
-@media (max-width: 767px) {
+@media (max-width: 390px) {
     .image-holder {
         aspect-ratio: unset;
         width: 100vw;
-        margin-left: calc(-50vw + 50%);
-        margin-right: calc(-50vw + 50%);
+        margin-left: calc(-50vw + 60%);
+        margin-right: calc(-50vw + 90%);
         height: auto;
         overflow: hidden;
     }
@@ -146,7 +147,7 @@
 
 .slider-image {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: cover;
     border-radius: var(--slider-border-radius);
     display: block;

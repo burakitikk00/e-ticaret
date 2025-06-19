@@ -2,6 +2,8 @@ import React from 'react';
 import Slider from 'react-slick';
 import '../css/Slider.css';
 
+import sliderIndirim from '../Images/Slider1.jpg';
+import slider2 from '../Images/Slider2.jpg';
 const Sliders = () => {
     // Özel ok bileşenlerini ayrı fonksiyonlar olarak tanımlıyoruz
     const NextArrow = ({ onClick }) => (
@@ -37,12 +39,12 @@ const Sliders = () => {
 
     const images = [
         {
-            mobile: "https://cdn.myikas.com/images/theme-images/5e837046-d139-49d0-bbd1-25ebd5fe5106/image_3840.webp",
-            desktop: "https://cdn.myikas.com/images/theme-images/5e837046-d139-49d0-bbd1-25ebd5fe5106/image_3840.webp"
+            mobile: sliderIndirim,
+            desktop: sliderIndirim
         },
         {
-            mobile: "https://cdn.myikas.com/images/theme-images/03bd9a57-adc4-4e22-9604-9f59b9b6e627/image_3840.webp",
-            desktop: "https://cdn.myikas.com/images/theme-images/03bd9a57-adc4-4e22-9604-9f59b9b6e627/image_3840.webp"
+            mobile: slider2,
+            desktop: slider2
         }
     ];
 
