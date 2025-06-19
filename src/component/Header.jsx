@@ -694,8 +694,14 @@ function Header() {
                 onSelect={(type) => {
                     setIsGuestOrLoginOpen(false);
                     setIsCartOpen(false);
-                    if(type === 'guest') setIsCheckoutOpen(true);
-                    if(type === 'login') setShowLoginModal(true);
+                    if(type === 'login') {
+                        setIsRegister(false); // Giriş ekranı açılsın
+                        setShowLoginModal(true);
+                    }
+                    if(type === 'register') {
+                        setIsRegister(true); // Üye ol ekranı açılsın
+                        setShowLoginModal(true);
+                    }
                 }}
             />
             {/* Sipariş tamamlama modalı */}

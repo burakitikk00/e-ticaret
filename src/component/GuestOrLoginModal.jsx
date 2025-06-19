@@ -9,11 +9,11 @@ function GuestOrLoginModal({ isOpen, onClose, onSelect }) {
                 <button className="close-btn" onClick={onClose}>×</button>
                 <h2 style={{textAlign:'center', marginBottom:24}}>Devam Etmek İçin Seçim Yapın</h2>
                 <div style={{display:'flex', flexDirection:'column', gap:16}}>
-                    <button className="siparisi-tamamla-btn"  onClick={() => onSelect('guest')}>
-                        Üye Olmadan Devam Et
-                    </button>
-                    <button className="siparisi-tamamla-btn" style={{background:'#fff', color:'#000', border:'2px solid #000'}} onClick={() => onSelect('login')}>
+                    <button className="siparisi-tamamla-btn" onClick={() => onSelect('login')}>
                         Giriş Yap
+                    </button>
+                    <button className="siparisi-tamamla-btn" style={{background:'#fff', color:'#000', border:'2px solid #000'}} onClick={() => onSelect('register')}>
+                        Üye Ol
                     </button>
                 </div>
             </div>
